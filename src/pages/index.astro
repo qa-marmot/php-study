@@ -1,17 +1,148 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { curriculum } from '../data/curriculum';
+import { questions } from '../data/questions';
 
+const phases = [...new Set(curriculum.map((c) => c.phase))];
+const totalQuestions = questions.length;
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title="トップ">
+  <div class="max-w-screen-xl mx-auto px-4 py-10">
+
+    <div class="mb-8 text-center">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">PHP8 初級試験対策</h1>
+      <p class="text-gray-500">全11章で学ぶPHP8の基礎から応用まで</p>
+    </div>
+
+    <!-- 全体進捗バー -->
+    <div class="mb-10 bg-white border border-gray-200 rounded-xl px-6 py-5">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-sm font-semibold text-gray-700">全体の進捗</p>
+        <div class="flex items-center gap-3">
+          <span id="progress-text" class="text-sm text-gray-400">読み込み中…</span>
+          <a
+            href="/quiz/"
+            class="text-xs bg-indigo-600 text-white font-medium px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            全章まとめ練習 ({totalQuestions}問)
+          </a>
+        </div>
+      </div>
+      <div class="w-full bg-gray-100 rounded-full h-2">
+        <div id="progress-bar-total" class="bg-indigo-500 h-2 rounded-full transition-all duration-500" style="width:0%"></div>
+      </div>
+    </div>
+
+    {phases.map((phase) => {
+      const chapters = curriculum.filter((c) => c.phase === phase);
+      return (
+        <section class="mb-10">
+          <h2 class="text-lg font-semibold text-indigo-700 border-b border-indigo-200 pb-1 mb-4">
+            {phase}
+          </h2>
+          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {chapters.map((chapter) => {
+              const qCount = questions.filter((q) => q.chapterSlug === chapter.slug).length;
+              return (
+                <a
+                  href={`/chapters/${chapter.slug}/`}
+                  data-slug={chapter.slug}
+                  class="chapter-card block bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-400 hover:shadow-md transition-all group"
+                >
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-3 min-w-0">
+                      <span class="flex-shrink-0 w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold text-sm flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        {chapter.chapter}
+                      </span>
+                      <div class="min-w-0">
+                        <p class="font-semibold text-gray-800 group-hover:text-indigo-700 transition-colors">
+                          {chapter.title}
+                        </p>
+                        <p class="text-xs text-gray-400 mt-0.5">{chapter.sections.length}セクション</p>
+                      </div>
+                    </div>
+                    {qCount > 0 && (
+                      <div
+                        class="chapter-badge flex-shrink-0 text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-400 whitespace-nowrap"
+                        data-total={qCount}
+                      >
+                        -/{qCount}問
+                      </div>
+                    )}
+                  </div>
+                  {qCount > 0 && (
+                    <div class="mt-3 w-full bg-gray-100 rounded-full h-1">
+                      <div
+                        class="chapter-progress-bar bg-indigo-400 h-1 rounded-full transition-all duration-500"
+                        style="width:0%"
+                      ></div>
+                    </div>
+                  )}
+                </a>
+              );
+            })}
+          </div>
+        </section>
+      );
+    })}
+
+  </div>
+</BaseLayout>
+
+<script>
+  const STORAGE_PREFIX = 'php-study-progress-';
+
+  function loadProgress(slug: string) {
+    try {
+      const raw = localStorage.getItem(STORAGE_PREFIX + slug);
+      return raw ? (JSON.parse(raw) as { score: number; total: number }) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  const cards = document.querySelectorAll<HTMLElement>('.chapter-card');
+  let completedChapters = 0;
+  let totalChapters = 0;
+
+  cards.forEach((card) => {
+    const slug = card.dataset.slug;
+    if (!slug) return;
+
+    const badge = card.querySelector<HTMLElement>('.chapter-badge');
+    const progressBar = card.querySelector<HTMLElement>('.chapter-progress-bar');
+    if (!badge || !progressBar) return;
+
+    totalChapters++;
+    const progress = loadProgress(slug);
+    const total = Number(badge.dataset.total);
+
+    if (progress) {
+      const pct = Math.round((progress.score / progress.total) * 100);
+      badge.textContent = `${progress.score}/${progress.total}問`;
+      if (pct >= 80) {
+        badge.className =
+          'chapter-badge flex-shrink-0 text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 whitespace-nowrap font-medium';
+      } else if (pct >= 50) {
+        badge.className =
+          'chapter-badge flex-shrink-0 text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 whitespace-nowrap font-medium';
+      } else {
+        badge.className =
+          'chapter-badge flex-shrink-0 text-xs px-2 py-1 rounded-full bg-red-100 text-red-600 whitespace-nowrap font-medium';
+      }
+      progressBar.style.width = `${pct}%`;
+      if (pct >= 80) completedChapters++;
+    } else {
+      badge.textContent = `-/${total}問`;
+    }
+  });
+
+  // 全体進捗
+  const progressText = document.getElementById('progress-text');
+  const progressBarTotal = document.getElementById('progress-bar-total');
+  if (progressText && progressBarTotal) {
+    progressText.textContent = `${completedChapters} / ${totalChapters} 章クリア（80%以上）`;
+    progressBarTotal.style.width = `${Math.round((completedChapters / totalChapters) * 100)}%`;
+  }
+</script>
