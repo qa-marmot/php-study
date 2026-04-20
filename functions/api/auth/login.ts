@@ -1,7 +1,4 @@
-import type { APIRoute } from 'astro';
-
-export const GET: APIRoute = ({ request, locals }) => {
-  const { env } = locals.runtime;
+export const onRequestGet: PagesFunction<Env> = ({ request, env }) => {
   const clientId = env.GITHUB_CLIENT_ID;
   if (!clientId) {
     return new Response('GITHUB_CLIENT_ID が設定されていません', { status: 500 });
@@ -15,18 +12,9 @@ export const GET: APIRoute = ({ request, locals }) => {
   githubUrl.searchParams.set('scope', 'read:user');
   githubUrl.searchParams.set('state', state);
 
-  const headers = new Headers({
-    Location: githubUrl.toString(),
-  });
-  // state と リダイレクト先を一時クッキーに保存（10分）
-  headers.append(
-    'Set-Cookie',
-    `oauth_state=${state}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=600`,
-  );
-  headers.append(
-    'Set-Cookie',
-    `oauth_redirect=${encodeURIComponent(redirectTo)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=600`,
-  );
+  const headers = new Headers({ Location: githubUrl.toString() });
+  headers.append('Set-Cookie', `oauth_state=${state}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=600`);
+  headers.append('Set-Cookie', `oauth_redirect=${encodeURIComponent(redirectTo)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=600`);
 
   return new Response(null, { status: 302, headers });
 };
