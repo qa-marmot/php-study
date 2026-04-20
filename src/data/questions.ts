@@ -1458,7 +1458,7 @@ export const questions: Question[] = [
   },
   {
     id: 'q112',
-    chapterSlug: 'chapter-01',
+    chapterSlug: 'chapter-11',
     text: 'PHP 8.0の属性（Attribute）の記法として正しいものはどれか。',
     options: [
       { id: 'a', text: '@Route("/home") をクラス宣言の直前に記述する' },
@@ -1471,7 +1471,7 @@ export const questions: Question[] = [
   },
   {
     id: 'q113',
-    chapterSlug: 'chapter-01',
+    chapterSlug: 'chapter-11',
     text: 'リフレクションAPIに関する記述として正しいものはどれか。',
     options: [
       { id: 'a', text: 'リフレクションはコンパイル時にのみ使用できる' },
@@ -1484,7 +1484,7 @@ export const questions: Question[] = [
   },
   {
     id: 'q114',
-    chapterSlug: 'chapter-01',
+    chapterSlug: 'chapter-11',
     text: 'XSS（クロスサイトスクリプティング）攻撃の説明として正しいものはどれか。',
     options: [
       { id: 'a', text: '攻撃者がSQLクエリを改ざんしてデータベースを不正操作する攻撃' },
@@ -1497,7 +1497,7 @@ export const questions: Question[] = [
   },
   {
     id: 'q115',
-    chapterSlug: 'chapter-01',
+    chapterSlug: 'chapter-11',
     text: '以下のコードがSQLインジェクションに脆弱な理由として正しいものはどれか。\n\n<?php\n$name = $_GET[\'name\'];\n$stmt = $pdo->query("SELECT * FROM users WHERE name = \'$name\'");',
     options: [
       { id: 'a', text: '$pdo->query() の代わりに $pdo->exec() を使うべきだから' },
@@ -1510,7 +1510,7 @@ export const questions: Question[] = [
   },
   {
     id: 'q116',
-    chapterSlug: 'chapter-01',
+    chapterSlug: 'chapter-11',
     text: 'CSRF（クロスサイトリクエストフォージェリ）の対策として最も適切なものはどれか。',
     options: [
       { id: 'a', text: 'すべてのユーザー入力を htmlspecialchars でエスケープする' },
@@ -1523,7 +1523,7 @@ export const questions: Question[] = [
   },
   {
     id: 'q117',
-    chapterSlug: 'chapter-01',
+    chapterSlug: 'chapter-11',
     text: '以下のコードの脆弱性と対策として正しいものはどれか。\n\n<?php\n$file = $_GET[\'file\'];\n$content = file_get_contents("/var/www/docs/" . $file);\necho $content;',
     options: [
       { id: 'a', text: '脆弱性はなく、このコードは安全' },
@@ -1536,7 +1536,7 @@ export const questions: Question[] = [
   },
   {
     id: 'q118',
-    chapterSlug: 'chapter-01',
+    chapterSlug: 'chapter-11',
     text: 'メールヘッダーインジェクションの説明と対策として正しいものはどれか。',
     options: [
       { id: 'a', text: 'メール本文にHTMLを埋め込む攻撃。対策はプレーンテキストのみ送信する' },
@@ -1549,7 +1549,7 @@ export const questions: Question[] = [
   },
   {
     id: 'q119',
-    chapterSlug: 'chapter-01',
+    chapterSlug: 'chapter-11',
     text: 'PHPのセキュリティ設定に関する記述として正しいものはどれか。',
     options: [
       { id: 'a', text: 'display_errors = On は本番環境でも有効にすべきで、デバッグに役立つ' },
@@ -4263,5 +4263,122 @@ export const questions: Question[] = [
     ],
     correctId: 'c',
     explanation: 'インターフェースには定数（const）を定義できる。通常のプロパティは定義できない。クラスは複数のインターフェースをimplementsできる（カンマ区切り）。PHP 8.0以降、インターフェースにデフォルト実装のメソッドは書けない（抽象クラスと異なる点）。',
+  },
+  {
+    id: 'q328',
+    chapterSlug: 'chapter-01',
+    text: 'サーバーサイド技術におけるPHPの位置付けとして正しい説明はどれか。',
+    options: [
+      { id: 'a', text: 'PHPはMicrosoft社が開発した有料の商用製品である' },
+      { id: 'b', text: 'PHPはオープンソースのサーバーサイドスクリプト言語で、WordPressをはじめ多くのWebアプリに採用されている' },
+      { id: 'c', text: 'PHPはコンパイル型言語で、事前にバイナリを生成してから実行する' },
+      { id: 'd', text: 'PHPはブラウザ上でのみ動作するスクリプト言語である' },
+    ],
+    correctId: 'b',
+    explanation: '- B（正解）: PHPはオープンソース（無償）のサーバーサイドスクリプト言語。WordPressやECサイトなど幅広いWebアプリで使われており、世界的に普及している。 A（誤）: PHPはオープンソースで無料。MicrosoftのASP.NETとは別物。 C（誤）: PHPはインタプリター型（実行時にソースを解釈する）。 D（誤）: PHPはサーバー上で実行され、生成したHTMLをブラウザに返す。',
+  },
+  {
+    id: 'q329',
+    chapterSlug: 'chapter-01',
+    text: 'PHPでWebアプリを開発・動作させるために必要なソフトウェアの組み合わせとして正しいものはどれか。',
+    options: [
+      { id: 'a', text: 'PHPインタプリター、Webサーバー（Apache等）、テキストエディタ（またはIDE）' },
+      { id: 'b', text: 'Javaランタイム（JRE）、Apache、Eclipse' },
+      { id: 'c', text: 'Node.js、nginx、VS Code' },
+      { id: 'd', text: 'Python、MySQL、メモ帳' },
+    ],
+    correctId: 'a',
+    explanation: '- A（正解）: PHP開発には PHPインタプリター（コードを実行する本体）、Webサーバー（Apache、nginxなどがリクエストをPHPに渡す）、コードを書くためのエディタ/IDEが必要。 B（誤）: JavaランタイムやEclipseはJava開発環境。 C（誤）: Node.jsはJavaScriptのサーバーサイド実行環境でPHPとは別物。 D（誤）: Pythonは別言語。',
+  },
+  {
+    id: 'q330',
+    chapterSlug: 'chapter-01',
+    text: 'XAMPPに関する説明として正しいものはどれか。',
+    options: [
+      { id: 'a', text: 'XAMPPはMicrosoft社が提供するWindows専用の開発ツール' },
+      { id: 'b', text: 'XAMPPはApache・MariaDB（MySQL）・PHP・Perlを一括インストールできるクロスプラットフォームパッケージ' },
+      { id: 'c', text: 'XAMPPはPHPのコンパイラーであり、ソースコードをバイナリに変換するツール' },
+      { id: 'd', text: 'XAMPPはVisual Studio Codeの拡張機能の一つ' },
+    ],
+    correctId: 'b',
+    explanation: '- B（正解）: XAMPPはApache Friends が提供するオープンソースパッケージ。X（クロスプラットフォーム）、A（Apache）、M（MariaDB/MySQL）、P（PHP）、P（Perl）の頭文字。Windows・macOS・Linuxに対応しており、ローカル開発環境を手軽に構築できる。 A（誤）: Microsoft製ではなく、クロスプラットフォームで無料。 C（誤）: PHPはインタプリター型でバイナリへのコンパイルはしない。 D（誤）: XAMPPはVSCodeとは独立したソフトウェア。',
+  },
+  {
+    id: 'q331',
+    chapterSlug: 'chapter-01',
+    text: 'PHP開発に利用するVisual Studio Code（VSCode）の説明として正しいものはどれか。',
+    options: [
+      { id: 'a', text: 'VSCodeはPHP専用のIDEで、PHP以外の言語はサポートしない' },
+      { id: 'b', text: 'VSCodeは有料の商用エディタで、購入ライセンスが必要' },
+      { id: 'c', text: 'VSCodeはMicrosoft製の無料テキストエディタ/IDEで、拡張機能によりPHP開発環境を整えられる' },
+      { id: 'd', text: 'VSCodeはブラウザ上でのみ動作し、ローカルにインストールはできない' },
+    ],
+    correctId: 'c',
+    explanation: '- C（正解）: Visual Studio Code（VSCode）はMicrosoft製の無料エディタ。PHP Intelephense などの拡張機能を追加することで、コード補完・文法チェック・デバッグ等が利用できる。多言語対応で世界中の開発者に使われている。 A（誤）: JavaScript・Python・Java等多言語に対応。 B（誤）: 無料かつオープンソース。 D（誤）: デスクトップアプリとしてローカルにインストールして使う。',
+  },
+  {
+    id: 'q332',
+    chapterSlug: 'chapter-01',
+    text: 'XAMPPを使ってPHPファイルをブラウザで動作確認するための正しい手順はどれか。',
+    options: [
+      { id: 'a', text: 'PHPファイルをデスクトップに保存し、ダブルクリックで開く' },
+      { id: 'b', text: 'PHPファイルをXAMPPのドキュメントルート（htdocsフォルダ）に配置し、Apacheを起動してブラウザで http://localhost/ファイル名.php にアクセスする' },
+      { id: 'c', text: 'PHPファイルをブラウザにドラッグ＆ドロップして開く' },
+      { id: 'd', text: 'PHPファイルをコマンドプロンプトで直接コンパイルしてから実行する' },
+    ],
+    correctId: 'b',
+    explanation: '- B（正解）: XAMPPのドキュメントルートは htdocs フォルダ。そこにPHPファイルを置き、XAMPPコントロールパネルでApacheを起動した上で、ブラウザから http://localhost/ファイル名.php でアクセスするとPHPが実行される。 A（誤）: PHPファイルはブラウザで直接開いてもPHPコードが実行されず、ソースがそのまま表示される。 C（誤）: 同様にWebサーバーを経由しないと実行されない。 D（誤）: PHPはインタプリター型でコンパイル不要。',
+  },
+  {
+    id: 'q333',
+    chapterSlug: 'chapter-01',
+    text: '以下のコードをWebサーバー経由でブラウザから実行した場合の出力として正しいものはどれか。\n\n<?php\necho "Hello, PHP!";\n?>',
+    options: [
+      { id: 'a', text: 'Hello, PHP! と表示される' },
+      { id: 'b', text: '<?php echo "Hello, PHP!"; ?> がそのままHTMLとして表示される' },
+      { id: 'c', text: 'Hello, PHP! と <html> タグも自動生成されて表示される' },
+      { id: 'd', text: 'エラーになり何も表示されない' },
+    ],
+    correctId: 'a',
+    explanation: '- A（正解）: WebサーバーがPHPを実行し、echo の内容である "Hello, PHP!" だけがブラウザに送られて表示される。PHPタグ（<?php ?>）はブラウザには送られない。 B（誤）: PHPファイルをWebサーバー経由で開いた場合、PHPコードはサーバー側で処理されてからHTMLが返される。 C（誤）: HTMLタグの自動生成は行われない。 D（誤）: 正しいPHPコードなのでエラーにはならない。',
+  },
+  {
+    id: 'q334',
+    chapterSlug: 'chapter-01',
+    text: 'PHPファイルの拡張子に関する記述として正しいものはどれか。',
+    options: [
+      { id: 'a', text: 'PHPファイルは必ず .html として保存しなければならない' },
+      { id: 'b', text: 'PHPファイルは .php の拡張子で保存することで、Webサーバーが PHP として処理する設定が一般的' },
+      { id: 'c', text: 'PHPファイルの拡張子は .js でなければならない' },
+      { id: 'd', text: '拡張子はまったく関係なく、内容がPHPコードであればサーバーが自動判別する' },
+    ],
+    correctId: 'b',
+    explanation: '- B（正解）: Webサーバー（Apache等）は .php 拡張子のファイルをPHPインタプリターに渡す設定が標準的。これによりPHPコードが実行される。 A（誤）: .html では通常PHPとして処理されず、コードがそのまま表示される。 C（誤）: .js はJavaScriptのファイル拡張子。 D（誤）: Webサーバーは基本的に拡張子でPHP処理を判断する（設定変更で別拡張子も可能だが、標準は .php）。',
+  },
+  {
+    id: 'q335',
+    chapterSlug: 'chapter-01',
+    text: 'PHPで日本語を正しく扱うための文字コードの設定に関する説明として正しいものはどれか。',
+    options: [
+      { id: 'a', text: 'PHPファイルはShift-JISで保存するのが現在の標準' },
+      { id: 'b', text: 'PHPファイルはUTF-8で保存し、HTMLにも <meta charset="UTF-8"> を指定するのが現在の一般的な方法' },
+      { id: 'c', text: '文字コードはPHPとは無関係で、ブラウザが自動的に判定するため設定不要' },
+      { id: 'd', text: 'PHPは文字コードを自動変換するため、ファイルの文字コードは何でもよい' },
+    ],
+    correctId: 'b',
+    explanation: '- B（正解）: 現在の標準はUTF-8。PHPファイル自体をUTF-8（BOMなし）で保存し、HTMLの <meta charset="UTF-8"> やPHP側の header("Content-Type: text/html; charset=UTF-8") でブラウザに文字コードを伝える。 A（誤）: Shift-JISはかつて使われたが、現在はUTF-8が標準。 C（誤）: ブラウザの自動判別は不確実で文字化けの原因になる。 D（誤）: PHPは文字コードを自動変換しない（mb_convert_encoding等を使う必要がある）。',
+  },
+  {
+    id: 'q336',
+    chapterSlug: 'chapter-01',
+    text: 'テキストファイルの改行コードに関する記述として正しいものはどれか。',
+    options: [
+      { id: 'a', text: 'PHPファイルの改行コードはすべてCR（\\r）のみで統一する必要がある' },
+      { id: 'b', text: 'WindowsではCRLF（\\r\\n）、macOS/LinuxではLF（\\n）が標準的な改行コードであり、チーム開発ではLFで統一することが多い' },
+      { id: 'c', text: 'HTMLで改行を表示するには改行コード（\\n）だけで十分' },
+      { id: 'd', text: 'PHPファイルの改行コードはCRLFでもLFでも実行結果にまったく影響しないため、どちらでも問題ない' },
+    ],
+    correctId: 'b',
+    explanation: '- B（正解）: OSによって標準の改行コードが異なる（Windows: CRLF、macOS/Linux: LF）。PHPコード自体はどちらでも動作するが、チーム開発ではGitの設定やエディタ設定でLFに統一することが一般的。ただし文字列処理でユーザー入力の改行コードを扱う場合は注意が必要。 A（誤）: CRのみはMacの旧OS9での改行コードで現在は使わない。 C（誤）: HTMLで改行を表示するには <br> タグが必要。 D（誤）: 文字列中の改行コードはstr_replace等の処理結果に影響する場合がある。',
   },
 ];
