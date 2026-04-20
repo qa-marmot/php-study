@@ -1,4 +1,5 @@
 ---
+export const prerender = true;
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { curriculum } from '../../../data/curriculum';
 import { questions } from '../../../data/questions';
@@ -209,6 +210,18 @@ const questionsJson = JSON.stringify(chapterQuestions);
       }
     });
 
+    async function saveToServer(chapterSlug, score, total) {
+      try {
+        await fetch('/api/quiz/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chapterSlug, score, total }),
+        });
+      } catch {
+        // ログアウト中や通信エラー時は無視
+      }
+    }
+
     function showResult() {
       questionArea.classList.add('hidden');
       resultArea.classList.remove('hidden');
@@ -216,7 +229,7 @@ const questionsJson = JSON.stringify(chapterQuestions);
       const total = questions.length;
       const pct = Math.round((score / total) * 100);
 
-      // 最高スコアのみ保存
+      // localStorage に最高スコアを保存
       const slug = questions[0]?.chapterSlug;
       if (slug) {
         try {
@@ -225,6 +238,8 @@ const questionsJson = JSON.stringify(chapterQuestions);
         } catch {
           saveProgress(slug, score, total);
         }
+        // ログイン済みの場合はサーバーにも保存
+        saveToServer(slug, score, total);
       }
 
       document.getElementById('result-emoji').textContent =

@@ -1,0 +1,106 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getSession } from '../lib/session';
+
+const session = await getSession(Astro.request, Astro.locals.runtime.env.JWT_SECRET);
+if (!session) {
+  const loginUrl = `/api/auth/login?redirect=${encodeURIComponent('/history')}`;
+  return Astro.redirect(loginUrl);
+}
+
+type HistoryRow = {
+  id: number;
+  chapter_slug: string;
+  score: number;
+  total: number;
+  answered_at: number;
+};
+
+const { results } = await Astro.locals.runtime.env.DB.prepare(
+  `SELECT id, chapter_slug, score, total, answered_at
+   FROM quiz_history
+   WHERE user_id = ?
+   ORDER BY answered_at DESC
+   LIMIT 100`,
+)
+  .bind(session.sub)
+  .all<HistoryRow>();
+
+const chapterTitleMap: Record<string, string> = {
+  'chapter-01': '第1章 イントロダクション',
+  'chapter-02': '第2章 PHPの基本',
+  'chapter-03': '第3章 演算子',
+  'chapter-04': '第4章 制御構文',
+  'chapter-05': '第5章 組み込み関数',
+  'chapter-06': '第6章 ユーザー定義関数',
+  'chapter-07': '第7章 標準クラスライブラリ',
+  'chapter-08': '第8章 リクエスト情報',
+  'chapter-09': '第9章 データベース連携',
+  'chapter-10': '第10章 オブジェクト指向構文',
+  'chapter-11': '第11章 高度なプログラミング',
+  'all': '全章まとめ練習',
+};
+
+function formatDate(unixSec: number): string {
+  return new Date(unixSec * 1000).toLocaleString('ja-JP', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+
+function pctColor(pct: number): string {
+  if (pct >= 80) return 'text-green-700 bg-green-50 border-green-200';
+  if (pct >= 60) return 'text-yellow-700 bg-yellow-50 border-yellow-200';
+  return 'text-red-700 bg-red-50 border-red-200';
+}
+---
+
+<BaseLayout title="学習履歴">
+  <div class="max-w-screen-md mx-auto px-4 py-10">
+
+    <nav class="text-sm text-gray-400 mb-6 flex items-center gap-1">
+      <a href="/" class="hover:text-indigo-600 transition-colors">トップ</a>
+      <span>/</span>
+      <span class="text-gray-800 font-medium">学習履歴</span>
+    </nav>
+
+    <div class="flex items-center gap-3 mb-8">
+      <img src={session.avatar} alt={session.name} class="w-10 h-10 rounded-full border border-gray-200" />
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">学習履歴</h1>
+        <p class="text-sm text-gray-400">{session.name}（@{session.login}）</p>
+      </div>
+    </div>
+
+    {results.length === 0 ? (
+      <div class="text-center py-16 text-gray-400">
+        <p class="text-4xl mb-3">📋</p>
+        <p class="text-sm">まだ記録がありません。練習問題を解いてみましょう！</p>
+        <a href="/" class="mt-4 inline-block text-indigo-600 hover:underline text-sm">トップへ</a>
+      </div>
+    ) : (
+      <div class="space-y-3">
+        {results.map((row) => {
+          const pct = Math.round((row.score / row.total) * 100);
+          const colorClass = pctColor(pct);
+          const title = chapterTitleMap[row.chapter_slug] ?? row.chapter_slug;
+          return (
+            <div class={`flex items-center gap-4 rounded-xl border p-4 ${colorClass}`}>
+              <div class="flex-1 min-w-0">
+                <p class="font-medium text-sm truncate">{title}</p>
+                <p class="text-xs opacity-60 mt-0.5">{formatDate(row.answered_at)}</p>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <p class="text-lg font-bold">{row.score}<span class="text-xs font-normal opacity-60"> / {row.total}</span></p>
+                <div class="w-20 bg-white/60 rounded-full h-1.5 mt-1">
+                  <div class="h-1.5 rounded-full bg-current opacity-60" style={`width:${pct}%`}></div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+
+  </div>
+</BaseLayout>
