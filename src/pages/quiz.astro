@@ -1,4 +1,5 @@
 ---
+export const prerender = true;
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { questions } from '../data/questions';
 
@@ -280,6 +281,18 @@ const questionsJson = JSON.stringify(questions);
     }
   });
 
+  async function saveToServer(chapterSlug, score, total) {
+    try {
+      await fetch('/api/quiz/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chapterSlug, score, total }),
+      });
+    } catch {
+      // ログアウト中や通信エラー時は無視
+    }
+  }
+
   function showResult() {
     questionArea.classList.add('hidden');
     resultArea.classList.remove('hidden');
@@ -292,6 +305,9 @@ const questionsJson = JSON.stringify(questions);
     document.getElementById('result-title').textContent =
       pct >= 80 ? '素晴らしい！' : pct >= 60 ? 'もう少しです！' : '復習しましょう';
     document.getElementById('result-score').textContent = `${score} / ${total}`;
+
+    // ログイン済みの場合はサーバーに保存（全章まとめは 'all' で記録）
+    saveToServer('all', score, total);
 
     // 苦手問題の更新
     const currentMistakes = loadMistakes();
