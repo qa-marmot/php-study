@@ -101,8 +101,8 @@ export const questions: Question[] = [
         { id: 'c', text: '# 形式のコメントはPHP 8では無効なため解析エラーになる' },
         { id: 'd', text: 'ブロックコメント内の改行が原因でエラーになる' },
       ],
-      correctId: 'b',
-      explanation: '- B（正解）: echo $x の末尾に ; がないためParseエラー。?> 直前のセミコロン省略が許可されるケースもあるが、この場合はエラーとなる。 A（誤）: セミコロン欠如がある。 C（誤）: # は有効な行コメント。PHPは //・#・/* */ の3種類すべてを有効とする。 D（誤）: /* */ の中の改行は問題ない。',
+      correctId: 'a',
+      explanation: '- A（正解）: PHP の閉じタグ ?> はセミコロンの代わりとして機能するステートメントターミネーターとなる。そのため echo $x の末尾に ; がなくても ?> がそれを補い、正常に 10 が出力される。 B（誤）: ?> はセミコロンの代わりになるため ParseError にはならない。 C（誤）: # は有効な行コメント。PHPは //・#・/* */ の3種類すべてを有効とする。 D（誤）: /* */ の中の改行は問題ない。',
     },
     {
       id: 'q008',
@@ -1735,12 +1735,12 @@ export const questions: Question[] = [
       text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$str = "PHP講座";\necho strlen($str);\necho "\\n";\necho mb_strlen($str, \'UTF-8\');',
       options: [
         { id: 'a', text: '5 / 5' },
-        { id: 'b', text: '11 / 5' },
+        { id: 'b', text: '9 / 5' },
         { id: 'c', text: '5 / 11' },
         { id: 'd', text: 'エラーになる' },
       ],
       correctId: 'b',
-      explanation: '- B（正解）: strlen はバイト数を返す。UTF-8では日本語1文字=3バイトのため "PHP講座" は 3(PHP) + 6(講座) = 11 バイト（あるいは P+H+P=3byte + 講+座=6byte = 9byte... 実際は P,H,P=3byte + 講=3byte + 座=3byte = 9byte）。mb_strlen は文字数で 5。 C（誤）: strlen と mb_strlen の結果が逆。 A・D（誤）: 誤り。 *(注: 正確には strlen("PHP講座") はエンコーディングにより異なるが、UTF-8前提で 3+3+3+3+3=...  → PHPは3byte、講は3byte、座は3byte → 9バイトになるため、strlen = 9, mb_strlen = 5 が正解。選択肢Bの「11」の部分は「9」が正確ですが、趣旨として strlen > mb_strlen を問う問題です。)*',
+      explanation: '- B（正解）: strlen はバイト数を返す。UTF-8では ASCII 1文字=1バイト、日本語1文字=3バイト。"PHP講座" は P(1)+H(1)+P(1)+講(3)+座(3) = 9バイト。mb_strlen は文字数で5。 C（誤）: strlen と mb_strlen の結果が逆。 A（誤）: strlen はバイト数なので5にはならない。 D（誤）: エラーにはならない。',
     },
     {
       id: 'q134',
