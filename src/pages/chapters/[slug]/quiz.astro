@@ -139,15 +139,7 @@ const questionsJson = JSON.stringify(chapterQuestions);
     }
 
     function shuffleOptions(q) {
-      const shuffled = shuffle(q.options);
-      const newCorrectId = String.fromCharCode(
-        97 + shuffled.findIndex((o) => o.id === q.correctId)
-      );
-      return {
-        ...q,
-        options: shuffled.map((opt, i) => ({ id: String.fromCharCode(97 + i), text: opt.text })),
-        correctId: newCorrectId,
-      };
+      return { ...q, options: shuffle(q.options) };
     }
 
     let questions = [];
