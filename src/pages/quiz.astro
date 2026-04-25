@@ -124,31 +124,15 @@ const questionsJson = JSON.stringify(questions);
 </BaseLayout>
 
 <script define:vars={{ questionsJson }}>
+  window.__quizAllQuestions = JSON.parse(questionsJson);
+</script>
+<script>
+  import { shuffle, shuffleOptions } from '../lib/quizUtils';
+
   const STORAGE_PREFIX = 'php-study-progress-';
   const MISTAKE_KEY = 'php-study-mistakes';
 
-  const allQuestions = JSON.parse(questionsJson);
-
-  function shuffle(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
-  function shuffleOptions(q) {
-    const shuffled = shuffle(q.options);
-    const newCorrectId = String.fromCharCode(
-      97 + shuffled.findIndex((o) => o.id === q.correctId)
-    );
-    return {
-      ...q,
-      options: shuffled.map((opt, i) => ({ id: String.fromCharCode(97 + i), text: opt.text })),
-      correctId: newCorrectId,
-    };
-  }
+  const allQuestions = window.__quizAllQuestions;
 
   function loadMistakes() {
     try {
