@@ -125,14 +125,36 @@ const questionsJson = JSON.stringify(chapterQuestions);
     } catch {}
   }
 
-  const questions = JSON.parse(questionsJson);
-  if (questions.length === 0) {
+  const allQuestions = JSON.parse(questionsJson);
+  if (allQuestions.length === 0) {
     // 問題なし → スクリプト不要
   } else {
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function shuffleOptions(q) {
+      const shuffled = shuffle(q.options);
+      const newCorrectId = String.fromCharCode(
+        97 + shuffled.findIndex((o) => o.id === q.correctId)
+      );
+      return {
+        ...q,
+        options: shuffled.map((opt, i) => ({ id: String.fromCharCode(97 + i), text: opt.text })),
+        correctId: newCorrectId,
+      };
+    }
+
+    let questions = [];
     let currentIndex = 0;
     let score = 0;
     let answered = false;
-    const results = [];
+    let results = [];
 
     const questionArea = document.getElementById('question-area');
     const questionCounter = document.getElementById('question-counter');
@@ -145,6 +167,16 @@ const questionsJson = JSON.stringify(chapterQuestions);
     const nextBtn = document.getElementById('next-btn');
     const resultArea = document.getElementById('result-area');
     const retryBtn = document.getElementById('retry-btn');
+
+    function startQuiz() {
+      questions = shuffle(allQuestions).map(shuffleOptions);
+      currentIndex = 0;
+      score = 0;
+      answered = false;
+      results = [];
+      resultArea.classList.add('hidden');
+      showQuestion(0);
+    }
 
     function showQuestion(index) {
       answered = false;
@@ -267,16 +299,9 @@ const questionsJson = JSON.stringify(chapterQuestions);
       });
     }
 
-    retryBtn.addEventListener('click', () => {
-      currentIndex = 0;
-      score = 0;
-      answered = false;
-      results.length = 0;
-      resultArea.classList.add('hidden');
-      showQuestion(0);
-    });
+    retryBtn.addEventListener('click', () => startQuiz());
 
     // 初期表示
-    showQuestion(0);
+    startQuiz();
   }
 </script>

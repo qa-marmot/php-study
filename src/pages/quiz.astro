@@ -138,6 +138,18 @@ const questionsJson = JSON.stringify(questions);
     return a;
   }
 
+  function shuffleOptions(q) {
+    const shuffled = shuffle(q.options);
+    const newCorrectId = String.fromCharCode(
+      97 + shuffled.findIndex((o) => o.id === q.correctId)
+    );
+    return {
+      ...q,
+      options: shuffled.map((opt, i) => ({ id: String.fromCharCode(97 + i), text: opt.text })),
+      correctId: newCorrectId,
+    };
+  }
+
   function loadMistakes() {
     try {
       const raw = localStorage.getItem(MISTAKE_KEY);
@@ -183,7 +195,7 @@ const questionsJson = JSON.stringify(questions);
   const resultArea = document.getElementById('result-area');
 
   function startQuiz(pool) {
-    questions = shuffle(pool);
+    questions = shuffle(pool).map(shuffleOptions);
     currentIndex = 0;
     score = 0;
     answered = false;
