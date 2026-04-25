@@ -114,6 +114,11 @@ const questionsJson = JSON.stringify(chapterQuestions);
 </BaseLayout>
 
 <script define:vars={{ questionsJson }}>
+  window.__chapterQuestions = JSON.parse(questionsJson);
+</script>
+<script>
+  import { shuffle, shuffleOptions } from '../../../lib/quizUtils';
+
   const STORAGE_PREFIX = 'php-study-progress-';
 
   function saveProgress(slug, score, total) {
@@ -125,39 +130,10 @@ const questionsJson = JSON.stringify(chapterQuestions);
     } catch {}
   }
 
-  const allQuestions = JSON.parse(questionsJson);
+  const allQuestions = window.__chapterQuestions;
   if (allQuestions.length === 0) {
     // 問題なし → スクリプト不要
   } else {
-    function shuffle(arr) {
-      const a = [...arr];
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-      return a;
-    }
-
-    function shuffleOptions(q) {
-      const shuffled = shuffle(q.options);
-      const labels = q.options.map((_, i) => String.fromCharCode(97 + i));
-      const labelMap = {};
-      shuffled.forEach((opt, i) => { labelMap[opt.id] = labels[i]; });
-
-      const explanation = q.explanation
-        .replace(/([A-D])(?=[（・])/g, (_, c) => {
-          const mapped = labelMap[c.toLowerCase()];
-          return mapped ? `【${mapped.toUpperCase()}】` : c;
-        })
-        .replace(/【([A-D])】/g, '$1');
-
-      return {
-        ...q,
-        options: shuffled.map((opt, i) => ({ id: labels[i], text: opt.text })),
-        correctId: labelMap[q.correctId],
-        explanation,
-      };
-    }
 
     let questions = [];
     let currentIndex = 0;
