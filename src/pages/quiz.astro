@@ -1,0 +1,382 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { questions } from '../data/questions';
+
+const questionsJson = JSON.stringify(questions);
+---
+
+<BaseLayout title="全章まとめ練習">
+  <div class="max-w-screen-md mx-auto px-4 py-10">
+
+    <!-- パンくず -->
+    <nav class="text-sm text-gray-400 mb-6 flex items-center gap-1">
+      <a href="/" class="hover:text-indigo-600 transition-colors">トップ</a>
+      <span>/</span>
+      <span class="text-gray-800 font-medium">全章まとめ練習</span>
+    </nav>
+
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-800">全章まとめ練習</h1>
+      <p class="text-gray-500 text-sm mt-1">全{questions.length}問・シャッフル出題</p>
+    </div>
+
+    <!-- スタート画面 -->
+    <div id="start-area" class="bg-white border border-gray-200 rounded-xl p-8 text-center">
+      <p class="text-5xl mb-4">🐘</p>
+      <h2 class="text-lg font-bold text-gray-800 mb-2">全章の問題に挑戦しよう</h2>
+      <p class="text-sm text-gray-500 mb-6">
+        全11章から{questions.length}問をシャッフルして出題します。<br />
+        自信がついたら挑戦してみましょう！
+      </p>
+      <div class="flex flex-col sm:flex-row justify-center gap-3">
+        <button
+          id="start-all-btn"
+          class="bg-indigo-600 text-white font-medium px-6 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+        >
+          全問（{questions.length}問）で始める
+        </button>
+        <button
+          id="start-mistakes-btn"
+          class="bg-white border border-gray-300 text-gray-700 font-medium px-6 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-sm hidden"
+          id="start-mistakes-btn"
+        >
+          苦手問題のみ（<span id="mistake-count">0</span>問）
+        </button>
+      </div>
+    </div>
+
+    <!-- 問題表示エリア -->
+    <div id="question-area" class="hidden">
+      <div class="mb-3 flex items-center justify-between text-sm text-gray-400">
+        <span id="question-counter"></span>
+        <span id="score-display"></span>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-1.5 mb-4">
+        <div id="progress-bar" class="bg-indigo-500 h-1.5 rounded-full transition-all duration-300" style="width:0%"></div>
+      </div>
+
+      <!-- 章バッジ -->
+      <div class="mb-3">
+        <span id="chapter-badge" class="text-xs bg-indigo-50 text-indigo-600 font-medium px-2 py-1 rounded-full"></span>
+      </div>
+
+      <div class="bg-white border border-gray-200 rounded-xl p-6 mb-4">
+        <p id="question-text" class="text-gray-800 font-medium leading-relaxed whitespace-pre-wrap"></p>
+      </div>
+
+      <div id="options-area" class="space-y-3 mb-4"></div>
+
+      <div id="explanation-area" class="hidden bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-4">
+        <p class="text-sm font-semibold text-indigo-800 mb-1">解説</p>
+        <p id="explanation-text" class="text-sm text-indigo-700 leading-relaxed"></p>
+      </div>
+
+      <div class="flex justify-end">
+        <button
+          id="next-btn"
+          class="hidden bg-indigo-600 text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+        >
+          次の問題 →
+        </button>
+      </div>
+    </div>
+
+    <!-- 結果画面 -->
+    <div id="result-area" class="hidden">
+      <div class="bg-white border border-gray-200 rounded-xl p-8 mb-6 text-center">
+        <div id="result-emoji" class="text-5xl mb-4"></div>
+        <p id="result-title" class="text-xl font-bold text-gray-800 mb-2"></p>
+        <p id="result-score" class="text-4xl font-bold text-indigo-600 mb-1"></p>
+        <p class="text-gray-400 text-sm">正解 / 全問</p>
+      </div>
+
+      <!-- 章別スコア -->
+      <div class="bg-white border border-gray-200 rounded-xl p-5 mb-6">
+        <p class="font-semibold text-gray-700 mb-3 text-sm">章別の結果</p>
+        <div id="chapter-scores" class="space-y-2"></div>
+      </div>
+
+      <div id="result-detail" class="space-y-3 mb-8"></div>
+
+      <div class="flex justify-center gap-4 flex-wrap">
+        <button
+          id="retry-btn"
+          class="bg-indigo-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors"
+        >
+          もう一度（シャッフル）
+        </button>
+        <button
+          id="retry-mistakes-btn"
+          class="hidden bg-red-50 border border-red-200 text-red-700 text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-red-100 transition-colors"
+        >
+          間違えた問題だけ復習
+        </button>
+        <a
+          href="/"
+          class="bg-gray-100 text-gray-700 text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-gray-200 transition-colors"
+        >
+          トップへ
+        </a>
+      </div>
+    </div>
+
+  </div>
+</BaseLayout>
+
+<script define:vars={{ questionsJson }}>
+  const STORAGE_PREFIX = 'php-study-progress-';
+  const MISTAKE_KEY = 'php-study-mistakes';
+
+  const allQuestions = JSON.parse(questionsJson);
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function loadMistakes() {
+    try {
+      const raw = localStorage.getItem(MISTAKE_KEY);
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch {
+      return new Set();
+    }
+  }
+
+  function saveMistakes(mistakeIds) {
+    try {
+      localStorage.setItem(MISTAKE_KEY, JSON.stringify([...mistakeIds]));
+    } catch {}
+  }
+
+  // 苦手問題ボタンの初期状態
+  const mistakeIds = loadMistakes();
+  const mistakeQuestions = allQuestions.filter((q) => mistakeIds.has(q.id));
+  const mistakeCountEl = document.getElementById('mistake-count');
+  const startMistakesBtn = document.getElementById('start-mistakes-btn');
+  if (mistakeCountEl) mistakeCountEl.textContent = String(mistakeQuestions.length);
+  if (startMistakesBtn && mistakeQuestions.length > 0) {
+    startMistakesBtn.classList.remove('hidden');
+  }
+
+  let questions = [];
+  let currentIndex = 0;
+  let score = 0;
+  let answered = false;
+  const results = [];
+
+  const startArea = document.getElementById('start-area');
+  const questionArea = document.getElementById('question-area');
+  const questionCounter = document.getElementById('question-counter');
+  const scoreDisplay = document.getElementById('score-display');
+  const progressBar = document.getElementById('progress-bar');
+  const chapterBadge = document.getElementById('chapter-badge');
+  const questionText = document.getElementById('question-text');
+  const optionsArea = document.getElementById('options-area');
+  const explanationArea = document.getElementById('explanation-area');
+  const explanationText = document.getElementById('explanation-text');
+  const nextBtn = document.getElementById('next-btn');
+  const resultArea = document.getElementById('result-area');
+
+  function startQuiz(pool) {
+    questions = shuffle(pool);
+    currentIndex = 0;
+    score = 0;
+    answered = false;
+    results.length = 0;
+    startArea.classList.add('hidden');
+    resultArea.classList.add('hidden');
+    showQuestion(0);
+  }
+
+  document.getElementById('start-all-btn').addEventListener('click', () => startQuiz(allQuestions));
+  if (startMistakesBtn) {
+    startMistakesBtn.addEventListener('click', () => {
+      const fresh = allQuestions.filter((q) => loadMistakes().has(q.id));
+      if (fresh.length === 0) return;
+      startQuiz(fresh);
+    });
+  }
+
+  // 章タイトルマップ（バッジ表示用）
+  const chapterTitleMap = {
+    'chapter-01': '第1章 イントロダクション',
+    'chapter-02': '第2章 PHPの基本',
+    'chapter-03': '第3章 演算子',
+    'chapter-04': '第4章 制御構文',
+    'chapter-05': '第5章 組み込み関数',
+    'chapter-06': '第6章 ユーザー定義関数',
+    'chapter-07': '第7章 標準クラスライブラリ',
+    'chapter-08': '第8章 リクエスト情報',
+    'chapter-09': '第9章 データベース連携',
+    'chapter-10': '第10章 オブジェクト指向構文',
+    'chapter-11': '第11章 高度なプログラミング',
+  };
+
+  function showQuestion(index) {
+    answered = false;
+    const q = questions[index];
+    const total = questions.length;
+
+    questionCounter.textContent = `問 ${index + 1} / ${total}`;
+    scoreDisplay.textContent = `正解: ${score}`;
+    progressBar.style.width = `${(index / total) * 100}%`;
+    questionText.textContent = q.text;
+    chapterBadge.textContent = chapterTitleMap[q.chapterSlug] ?? q.chapterSlug;
+
+    optionsArea.innerHTML = '';
+    explanationArea.classList.add('hidden');
+    nextBtn.classList.add('hidden');
+
+    q.options.forEach((opt) => {
+      const btn = document.createElement('button');
+      btn.dataset.id = opt.id;
+      btn.className =
+        'w-full text-left px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm hover:border-indigo-400 hover:bg-indigo-50 transition-all';
+      btn.textContent = `${opt.id.toUpperCase()}. ${opt.text}`;
+      btn.addEventListener('click', () => onAnswer(opt.id, q));
+      optionsArea.appendChild(btn);
+    });
+
+    questionArea.classList.remove('hidden');
+  }
+
+  function onAnswer(selectedId, q) {
+    if (answered) return;
+    answered = true;
+
+    const isCorrect = selectedId === q.correctId;
+    if (isCorrect) score++;
+    results.push({ q, selectedId, isCorrect });
+
+    optionsArea.querySelectorAll('button').forEach((btn) => {
+      btn.disabled = true;
+      if (btn.dataset.id === q.correctId) {
+        btn.className =
+          'w-full text-left px-4 py-3 rounded-xl border-2 border-green-500 bg-green-50 text-green-800 text-sm font-medium';
+      } else if (btn.dataset.id === selectedId && !isCorrect) {
+        btn.className =
+          'w-full text-left px-4 py-3 rounded-xl border-2 border-red-400 bg-red-50 text-red-700 text-sm';
+      }
+    });
+
+    explanationText.textContent = q.explanation;
+    explanationArea.classList.remove('hidden');
+    nextBtn.classList.remove('hidden');
+    nextBtn.textContent =
+      currentIndex < questions.length - 1 ? '次の問題 →' : '結果を見る';
+  }
+
+  nextBtn.addEventListener('click', () => {
+    currentIndex++;
+    if (currentIndex < questions.length) {
+      showQuestion(currentIndex);
+    } else {
+      showResult();
+    }
+  });
+
+  async function saveToServer(chapterSlug, score, total) {
+    try {
+      await fetch('/api/quiz/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chapterSlug, score, total }),
+      });
+    } catch {
+      // ログアウト中や通信エラー時は無視
+    }
+  }
+
+  function showResult() {
+    questionArea.classList.add('hidden');
+    resultArea.classList.remove('hidden');
+
+    const total = questions.length;
+    const pct = Math.round((score / total) * 100);
+
+    document.getElementById('result-emoji').textContent =
+      pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '📚';
+    document.getElementById('result-title').textContent =
+      pct >= 80 ? '素晴らしい！' : pct >= 60 ? 'もう少しです！' : '復習しましょう';
+    document.getElementById('result-score').textContent = `${score} / ${total}`;
+
+    // ログイン済みの場合はサーバーに保存（全章まとめは 'all' で記録）
+    saveToServer('all', score, total);
+
+    // 苦手問題の更新
+    const currentMistakes = loadMistakes();
+    results.forEach((r) => {
+      if (!r.isCorrect) {
+        currentMistakes.add(r.q.id);
+      } else {
+        currentMistakes.delete(r.q.id);
+      }
+    });
+    saveMistakes(currentMistakes);
+
+    // 苦手問題復習ボタン
+    const mistakesInSession = results.filter((r) => !r.isCorrect);
+    const retryMistakesBtn = document.getElementById('retry-mistakes-btn');
+    if (mistakesInSession.length > 0) {
+      retryMistakesBtn.textContent = `間違えた${mistakesInSession.length}問を復習`;
+      retryMistakesBtn.classList.remove('hidden');
+    }
+
+    // 章別スコア
+    const chapterMap = {};
+    results.forEach((r) => {
+      const slug = r.q.chapterSlug;
+      if (!chapterMap[slug]) chapterMap[slug] = { correct: 0, total: 0 };
+      chapterMap[slug].total++;
+      if (r.isCorrect) chapterMap[slug].correct++;
+    });
+
+    const chapterScores = document.getElementById('chapter-scores');
+    chapterScores.innerHTML = '';
+    Object.entries(chapterMap).sort().forEach(([slug, data]) => {
+      const pct = Math.round((data.correct / data.total) * 100);
+      const color = pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-yellow-400' : 'bg-red-400';
+      const div = document.createElement('div');
+      div.className = 'flex items-center gap-3 text-sm';
+      div.innerHTML = `
+        <span class="text-gray-500 w-36 flex-shrink-0 text-xs">${chapterTitleMap[slug] ?? slug}</span>
+        <div class="flex-1 bg-gray-100 rounded-full h-2">
+          <div class="${color} h-2 rounded-full" style="width:${pct}%"></div>
+        </div>
+        <span class="text-gray-600 text-xs w-12 text-right">${data.correct}/${data.total}</span>
+      `;
+      chapterScores.appendChild(div);
+    });
+
+    // 問題ごとの詳細
+    const detail = document.getElementById('result-detail');
+    detail.innerHTML = '';
+    results.forEach((r, i) => {
+      const correctOpt = r.q.options.find((o) => o.id === r.q.correctId);
+      const selectedOpt = r.q.options.find((o) => o.id === r.selectedId);
+      const div = document.createElement('div');
+      div.className = `rounded-xl border p-4 ${r.isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`;
+      div.innerHTML = `
+        <p class="text-xs font-bold mb-1 ${r.isCorrect ? 'text-green-700' : 'text-red-700'}">
+          問${i + 1} ${r.isCorrect ? '正解 ✓' : '不正解 ✗'} — ${chapterTitleMap[r.q.chapterSlug] ?? ''}
+        </p>
+        <p class="text-sm text-gray-700 whitespace-pre-wrap mb-2">${r.q.text}</p>
+        ${!r.isCorrect ? `<p class="text-xs text-red-600 mb-1">あなたの解答: ${selectedOpt?.text ?? ''}</p>` : ''}
+        <p class="text-xs text-green-700 font-medium">正解: ${correctOpt?.text ?? ''}</p>
+        <p class="text-xs text-gray-500 mt-1">${r.q.explanation}</p>
+      `;
+      detail.appendChild(div);
+    });
+  }
+
+  document.getElementById('retry-btn').addEventListener('click', () => startQuiz(allQuestions));
+  document.getElementById('retry-mistakes-btn').addEventListener('click', () => {
+    const pool = allQuestions.filter((q) => loadMistakes().has(q.id));
+    if (pool.length > 0) startQuiz(pool);
+  });
+</script>

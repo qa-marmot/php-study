@@ -1,0 +1,9 @@
+name = "php-study"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat_v2"]
+pages_build_output_dir = "./dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "php-study-db"
+database_id = "c91a9995-6587-4ea2-92ae-c0667f2b049d"

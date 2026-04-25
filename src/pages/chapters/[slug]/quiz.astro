@@ -1,0 +1,282 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { curriculum } from '../../../data/curriculum';
+import { questions } from '../../../data/questions';
+
+export function getStaticPaths() {
+  return curriculum.map((chapter) => ({
+    params: { slug: chapter.slug },
+    props: { chapter },
+  }));
+}
+
+const { chapter } = Astro.props;
+const chapterQuestions = questions.filter((q) => q.chapterSlug === chapter.slug);
+const questionsJson = JSON.stringify(chapterQuestions);
+---
+
+<BaseLayout title={`第${chapter.chapter}章 練習問題 | ${chapter.title}`}>
+  <div class="max-w-screen-md mx-auto px-4 py-10">
+
+    <!-- パンくず -->
+    <nav class="text-sm text-gray-400 mb-6 flex items-center gap-1">
+      <a href="/" class="hover:text-indigo-600 transition-colors">トップ</a>
+      <span>/</span>
+      <a href={`/chapters/${chapter.slug}/`} class="hover:text-indigo-600 transition-colors">
+        第{chapter.chapter}章　{chapter.title}
+      </a>
+      <span>/</span>
+      <span class="text-gray-800 font-medium">練習問題</span>
+    </nav>
+
+    <div class="mb-8">
+      <p class="text-indigo-600 font-medium text-sm mb-1">第{chapter.chapter}章</p>
+      <h1 class="text-2xl font-bold text-gray-800">{chapter.title} — 練習問題</h1>
+      <p class="text-gray-500 text-sm mt-1">全{chapterQuestions.length}問</p>
+    </div>
+
+    <!-- クイズコンテナ -->
+    <div id="quiz-container">
+
+      <!-- 問題表示エリア -->
+      <div id="question-area" class="hidden">
+        <div class="mb-3 flex items-center justify-between text-sm text-gray-400">
+          <span id="question-counter"></span>
+          <span id="score-display"></span>
+        </div>
+
+        <!-- プログレスバー -->
+        <div class="w-full bg-gray-200 rounded-full h-1.5 mb-6">
+          <div id="progress-bar" class="bg-indigo-500 h-1.5 rounded-full transition-all duration-300" style="width:0%"></div>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-xl p-6 mb-4">
+          <p id="question-text" class="text-gray-800 font-medium leading-relaxed whitespace-pre-wrap"></p>
+        </div>
+
+        <div id="options-area" class="space-y-3 mb-4"></div>
+
+        <!-- 解説エリア -->
+        <div id="explanation-area" class="hidden bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-4">
+          <p class="text-sm font-semibold text-indigo-800 mb-1">解説</p>
+          <p id="explanation-text" class="text-sm text-indigo-700 leading-relaxed"></p>
+        </div>
+
+        <div class="flex justify-end">
+          <button
+            id="next-btn"
+            class="hidden bg-indigo-600 text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            次の問題 →
+          </button>
+        </div>
+      </div>
+
+      <!-- 結果画面 -->
+      <div id="result-area" class="hidden text-center">
+        <div class="bg-white border border-gray-200 rounded-xl p-8 mb-6">
+          <div id="result-emoji" class="text-5xl mb-4"></div>
+          <p id="result-title" class="text-xl font-bold text-gray-800 mb-2"></p>
+          <p id="result-score" class="text-4xl font-bold text-indigo-600 mb-1"></p>
+          <p class="text-gray-400 text-sm">正解 / 全問</p>
+        </div>
+
+        <!-- 問題ごとの結果 -->
+        <div id="result-detail" class="text-left space-y-3 mb-8"></div>
+
+        <div class="flex justify-center gap-4">
+          <button
+            id="retry-btn"
+            class="bg-indigo-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            もう一度挑戦
+          </button>
+          <a
+            href={`/chapters/${chapter.slug}/`}
+            class="bg-gray-100 text-gray-700 text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            章に戻る
+          </a>
+        </div>
+      </div>
+
+      <!-- 問題なし -->
+      {chapterQuestions.length === 0 && (
+        <div class="text-center py-16 text-gray-400">
+          <p class="text-4xl mb-3">📝</p>
+          <p>この章の練習問題は準備中です</p>
+          <a href={`/chapters/${chapter.slug}/`} class="mt-4 inline-block text-indigo-600 hover:underline text-sm">章に戻る</a>
+        </div>
+      )}
+    </div>
+
+  </div>
+</BaseLayout>
+
+<script define:vars={{ questionsJson }}>
+  const STORAGE_PREFIX = 'php-study-progress-';
+
+  function saveProgress(slug, score, total) {
+    try {
+      localStorage.setItem(
+        STORAGE_PREFIX + slug,
+        JSON.stringify({ score, total, date: new Date().toISOString().slice(0, 10) })
+      );
+    } catch {}
+  }
+
+  const questions = JSON.parse(questionsJson);
+  if (questions.length === 0) {
+    // 問題なし → スクリプト不要
+  } else {
+    let currentIndex = 0;
+    let score = 0;
+    let answered = false;
+    const results = [];
+
+    const questionArea = document.getElementById('question-area');
+    const questionCounter = document.getElementById('question-counter');
+    const scoreDisplay = document.getElementById('score-display');
+    const progressBar = document.getElementById('progress-bar');
+    const questionText = document.getElementById('question-text');
+    const optionsArea = document.getElementById('options-area');
+    const explanationArea = document.getElementById('explanation-area');
+    const explanationText = document.getElementById('explanation-text');
+    const nextBtn = document.getElementById('next-btn');
+    const resultArea = document.getElementById('result-area');
+    const retryBtn = document.getElementById('retry-btn');
+
+    function showQuestion(index) {
+      answered = false;
+      const q = questions[index];
+      const total = questions.length;
+
+      questionCounter.textContent = `問 ${index + 1} / ${total}`;
+      scoreDisplay.textContent = `正解: ${score}`;
+      progressBar.style.width = `${(index / total) * 100}%`;
+      questionText.textContent = q.text;
+
+      optionsArea.innerHTML = '';
+      explanationArea.classList.add('hidden');
+      nextBtn.classList.add('hidden');
+
+      q.options.forEach((opt) => {
+        const btn = document.createElement('button');
+        btn.dataset.id = opt.id;
+        btn.className =
+          'w-full text-left px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm hover:border-indigo-400 hover:bg-indigo-50 transition-all';
+        btn.textContent = `${opt.id.toUpperCase()}. ${opt.text}`;
+        btn.addEventListener('click', () => onAnswer(opt.id, q));
+        optionsArea.appendChild(btn);
+      });
+
+      questionArea.classList.remove('hidden');
+    }
+
+    function onAnswer(selectedId, q) {
+      if (answered) return;
+      answered = true;
+
+      const isCorrect = selectedId === q.correctId;
+      if (isCorrect) score++;
+      results.push({ q, selectedId, isCorrect });
+
+      // ボタンの色付け
+      optionsArea.querySelectorAll('button').forEach((btn) => {
+        btn.disabled = true;
+        if (btn.dataset.id === q.correctId) {
+          btn.className =
+            'w-full text-left px-4 py-3 rounded-xl border-2 border-green-500 bg-green-50 text-green-800 text-sm font-medium';
+        } else if (btn.dataset.id === selectedId && !isCorrect) {
+          btn.className =
+            'w-full text-left px-4 py-3 rounded-xl border-2 border-red-400 bg-red-50 text-red-700 text-sm';
+        }
+      });
+
+      explanationText.textContent = q.explanation;
+      explanationArea.classList.remove('hidden');
+      nextBtn.classList.remove('hidden');
+      nextBtn.textContent =
+        currentIndex < questions.length - 1 ? '次の問題 →' : '結果を見る';
+    }
+
+    nextBtn.addEventListener('click', () => {
+      currentIndex++;
+      if (currentIndex < questions.length) {
+        showQuestion(currentIndex);
+      } else {
+        showResult();
+      }
+    });
+
+    async function saveToServer(chapterSlug, score, total) {
+      try {
+        await fetch('/api/quiz/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chapterSlug, score, total }),
+        });
+      } catch {
+        // ログアウト中や通信エラー時は無視
+      }
+    }
+
+    function showResult() {
+      questionArea.classList.add('hidden');
+      resultArea.classList.remove('hidden');
+
+      const total = questions.length;
+      const pct = Math.round((score / total) * 100);
+
+      // localStorage に最高スコアを保存
+      const slug = questions[0]?.chapterSlug;
+      if (slug) {
+        try {
+          const prev = JSON.parse(localStorage.getItem(STORAGE_PREFIX + slug) ?? 'null');
+          if (!prev || score > prev.score) saveProgress(slug, score, total);
+        } catch {
+          saveProgress(slug, score, total);
+        }
+        // ログイン済みの場合はサーバーにも保存
+        saveToServer(slug, score, total);
+      }
+
+      document.getElementById('result-emoji').textContent =
+        pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '📚';
+      document.getElementById('result-title').textContent =
+        pct >= 80 ? '素晴らしい！' : pct >= 60 ? 'もう少しです！' : '復習しましょう';
+      document.getElementById('result-score').textContent = `${score} / ${total}`;
+
+      const detail = document.getElementById('result-detail');
+      detail.innerHTML = '';
+      results.forEach((r, i) => {
+        const correctOpt = r.q.options.find((o) => o.id === r.q.correctId);
+        const selectedOpt = r.q.options.find((o) => o.id === r.selectedId);
+        const div = document.createElement('div');
+        div.className = `rounded-xl border p-4 ${r.isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`;
+        div.innerHTML = `
+          <p class="text-xs font-bold mb-1 ${r.isCorrect ? 'text-green-700' : 'text-red-700'}">
+            問${i + 1} ${r.isCorrect ? '正解 ✓' : '不正解 ✗'}
+          </p>
+          <p class="text-sm text-gray-700 whitespace-pre-wrap mb-2">${r.q.text}</p>
+          ${!r.isCorrect ? `<p class="text-xs text-red-600 mb-1">あなたの解答: ${selectedOpt?.text ?? ''}</p>` : ''}
+          <p class="text-xs text-green-700 font-medium">正解: ${correctOpt?.text ?? ''}</p>
+          <p class="text-xs text-gray-500 mt-1">${r.q.explanation}</p>
+        `;
+        detail.appendChild(div);
+      });
+    }
+
+    retryBtn.addEventListener('click', () => {
+      currentIndex = 0;
+      score = 0;
+      answered = false;
+      results.length = 0;
+      resultArea.classList.add('hidden');
+      showQuestion(0);
+    });
+
+    // 初期表示
+    showQuestion(0);
+  }
+</script>
