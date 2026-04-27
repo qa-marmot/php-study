@@ -170,9 +170,14 @@ const questionsJson = JSON.stringify(chapterQuestions);
     async function getPhp() {
       if (phpInstance) return phpInstance;
       // CDNからロード — バンドルしないことでCloudflare Pagesのファイルサイズ制限を回避
+      // @php-wasm/web@3.x のAPI: loadWebRuntime + PHP(runtime) の組み合わせ
       // @ts-ignore
-      const { PHP } = await import('https://esm.sh/@php-wasm/web@3.1.20');
-      phpInstance = await PHP.load('8.2');
+      const [{ loadWebRuntime }, { PHP }] = await Promise.all([
+        import('https://esm.sh/@php-wasm/web@3.1.20'),
+        import('https://esm.sh/@php-wasm/universal@3.1.20'),
+      ]);
+      const runtime = await loadWebRuntime('8.2');
+      phpInstance = new PHP(runtime);
       return phpInstance;
     }
 
@@ -216,14 +221,21 @@ const questionsJson = JSON.stringify(chapterQuestions);
         const php = await getPhp();
         runBtn.textContent = '実行中...';
         const result = await php.run({ code: phpCodeEl.value });
-        const out = (result.text ?? result.stdout ?? '').trim();
-        phpOutput.textContent = out || '（出力なし）';
-        const code = result.exitCode ?? 0;
-        phpStatus.textContent = `終了コード: ${code}`;
-        phpStatus.className = `text-xs font-mono ${code === 0 ? 'text-green-400' : 'text-red-400'}`;
+        phpOutput.textContent = result.text?.trim() || '（出力なし）';
+        phpStatus.textContent = '終了コード: 0';
+        phpStatus.className = 'text-xs font-mono text-green-400';
       } catch (err: any) {
-        phpOutput.textContent = `読み込みエラー: ${err?.message ?? err}`;
-        phpStatus.textContent = '';
+        // exitCode !== 0 のとき PHP は PHPExecutionFailureError をスロー
+        // err.response に PHPResponse が入っている
+        const resp = err?.response;
+        if (resp) {
+          phpOutput.textContent = resp.text?.trim() || resp.errors?.trim() || '（出力なし）';
+          phpStatus.textContent = `終了コード: ${resp.exitCode}`;
+          phpStatus.className = 'text-xs font-mono text-red-400';
+        } else {
+          phpOutput.textContent = `読み込みエラー: ${err?.message ?? err}`;
+          phpStatus.textContent = '';
+        }
       } finally {
         runBtn.disabled = false;
         runBtn.textContent = '▶ 実行';
