@@ -1735,12 +1735,12 @@ export const questions: Question[] = [
       text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$str = "PHP講座";\necho strlen($str);\necho "\\n";\necho mb_strlen($str, \'UTF-8\');',
       options: [
         { id: 'a', text: '5 / 5' },
-        { id: 'b', text: '11 / 5' },
+        { id: 'b', text: '9 / 5' },
         { id: 'c', text: '5 / 11' },
         { id: 'd', text: 'エラーになる' },
       ],
       correctId: 'b',
-      explanation: '- B（正解）: strlen はバイト数を返す。UTF-8では日本語1文字=3バイトのため "PHP講座" は 3(PHP) + 6(講座) = 11 バイト（あるいは P+H+P=3byte + 講+座=6byte = 9byte... 実際は P,H,P=3byte + 講=3byte + 座=3byte = 9byte）。mb_strlen は文字数で 5。 C（誤）: strlen と mb_strlen の結果が逆。 A・D（誤）: 誤り。 *(注: 正確には strlen("PHP講座") はエンコーディングにより異なるが、UTF-8前提で 3+3+3+3+3=...  → PHPは3byte、講は3byte、座は3byte → 9バイトになるため、strlen = 9, mb_strlen = 5 が正解。選択肢Bの「11」の部分は「9」が正確ですが、趣旨として strlen > mb_strlen を問う問題です。)*',
+      explanation: 'strlen はバイト数を返す。UTF-8では英字1文字=1バイト、日本語1文字=3バイト。"PHP講座"はP+H+P=3バイト、講=3バイト、座=3バイトで合計9バイト。mb_strlenは文字数を返すため5。C（誤）: strlenとmb_strlenの結果が逆。A・D（誤）: 誤り。',
     },
     {
       id: 'q134',
