@@ -1,4 +1,4 @@
-export type Option = {
+﻿export type Option = {
   id: string;
   text: string;
 };
@@ -2555,11 +2555,11 @@ export const questions: Question[] = [
       options: [
         { id: 'a', text: 'n月j日はY年のd日目（リテラルとして出力）' },
         { id: 'b', text: '01月15日は2024年の015日目' },
-        { id: 'c', text: '1月15日は2024年の015日目' },
+        { id: 'c', text: '1月15日は2024年の15日目' },
         { id: 'd', text: '2024-01-15' },
       ],
       correctId: 'c',
-      explanation: 'DateTime::format()のフォーマット文字：n=0埋めなし月（1-12）、j=0埋めなし日（1-31）、Y=4桁年、d=0埋めあり日（01-31）。m=0埋めあり月（01-12）と混同注意。結果は\"1月15日は2024年の015日目\"。',
+      explanation: 'DateTime::format()のフォーマット文字：n=0埋めなし月（1-12）、j=0埋めなし日（1-31）、Y=4桁年、d=0埋めあり日（01-31）。m=0埋めあり月（01-12）と混同注意。結果は\"1月15日は2024年の15日目\"。',
     },
     {
       id: 'q197',

@@ -38,6 +38,56 @@ const questionsJson = JSON.stringify(chapterQuestions);
     <!-- クイズコンテナ -->
     <div id="quiz-container">
 
+      <!-- PHP エディタ（PC専用・結果画面の確認ボタンで表示） -->
+      <div id="php-editor-panel" class="hidden mb-6">
+        <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-700">
+          <!-- タイトルバー -->
+          <div class="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+            <div class="flex items-center gap-3">
+              <div class="flex gap-1.5">
+                <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+              </div>
+              <span class="text-xs text-gray-400 font-mono">PHP 8.2 — コードを編集して実行できます</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                id="run-btn"
+                class="flex items-center gap-1.5 text-xs bg-green-600 hover:bg-green-500 active:bg-green-700 text-white px-3 py-1.5 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ▶ 実行
+              </button>
+              <button
+                id="close-editor-btn"
+                class="text-gray-400 hover:text-gray-200 text-xs px-2 py-1.5 rounded transition-colors"
+                title="閉じる"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+          <!-- コードエリア -->
+          <textarea
+            id="php-code"
+            class="w-full bg-gray-900 text-green-300 font-mono text-sm p-4 resize-none outline-none leading-relaxed"
+            rows="8"
+            spellcheck="false"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+          ></textarea>
+          <!-- 出力エリア -->
+          <div class="border-t border-gray-700 bg-gray-950 px-4 py-3">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs text-gray-500 font-mono">出力</span>
+              <span id="php-status" class="text-xs text-gray-500"></span>
+            </div>
+            <pre id="php-output" class="text-sm text-gray-200 font-mono whitespace-pre-wrap min-h-5 leading-relaxed">—</pre>
+          </div>
+        </div>
+      </div>
+
       <!-- 問題表示エリア -->
       <div id="question-area" class="hidden">
         <div class="mb-3 flex items-center justify-between text-sm text-gray-400">
@@ -62,7 +112,9 @@ const questionsJson = JSON.stringify(chapterQuestions);
           <p id="explanation-text" class="text-sm text-indigo-700 leading-relaxed"></p>
         </div>
 
-        <div class="flex justify-end">
+        <div class="flex items-center justify-end gap-2 mt-2">
+          <!-- エディタ確認ボタン（PC専用・解答後にPHPコードがある問題でのみ表示） -->
+          <div id="editor-btn-area"></div>
           <button
             id="next-btn"
             class="hidden bg-indigo-600 text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
@@ -80,10 +132,7 @@ const questionsJson = JSON.stringify(chapterQuestions);
           <p id="result-score" class="text-4xl font-bold text-indigo-600 mb-1"></p>
           <p class="text-gray-400 text-sm">正解 / 全問</p>
         </div>
-
-        <!-- 問題ごとの結果 -->
         <div id="result-detail" class="text-left space-y-3 mb-8"></div>
-
         <div class="flex justify-center gap-4">
           <button
             id="retry-btn"
@@ -113,71 +162,154 @@ const questionsJson = JSON.stringify(chapterQuestions);
   </div>
 </BaseLayout>
 
-<script define:vars={{ questionsJson }}>
-  window.__chapterQuestions = JSON.parse(questionsJson);
+<!-- 問題データをグローバルに渡す（is:inline で同期的に設定） -->
+<script is:inline define:vars={{ questionsJson }}>
+  window.__QUIZ_QUESTIONS__ = JSON.parse(questionsJson);
 </script>
+
+<!-- メインスクリプト（Vite がモジュールとして処理 → 動的 import 可） -->
 <script>
   import { shuffle, shuffleOptions } from '../../../lib/quizUtils';
 
   const STORAGE_PREFIX = 'php-study-progress-';
+  const allQuestions: any[] = (window as any).__QUIZ_QUESTIONS__ ?? [];
 
-  function saveProgress(slug, score, total) {
-    try {
-      localStorage.setItem(
-        STORAGE_PREFIX + slug,
-        JSON.stringify({ score, total, date: new Date().toISOString().slice(0, 10) })
-      );
-    } catch {}
-  }
-
-  const allQuestions = window.__chapterQuestions;
   if (allQuestions.length === 0) {
-    // 問題なし → スクリプト不要
+    // 問題なし → 処理不要
   } else {
+    // ── PHP-WASM ────────────────────────────────────────────────
+    let phpInstance: any = null;
 
-    let questions = [];
+    async function getPhp() {
+      if (phpInstance) return phpInstance;
+      const [{ loadWebRuntime }, { PHP }] = await Promise.all([
+        import('@php-wasm/web'),
+        import('@php-wasm/universal'),
+      ]);
+      const runtime = await loadWebRuntime('8.2');
+      phpInstance = new PHP(runtime);
+      return phpInstance;
+    }
+
+    if (window.innerWidth >= 768 && 'requestIdleCallback' in window) {
+      requestIdleCallback(() => getPhp().catch(() => {}));
+    }
+
+    function extractPhpCode(text: string): string | null {
+      const idx = text.indexOf('<?php');
+      return idx !== -1 ? text.slice(idx) : null;
+    }
+
+    // ── DOM refs ────────────────────────────────────────────────
+    const questionArea    = document.getElementById('question-area')!;
+    const questionCounter = document.getElementById('question-counter')!;
+    const scoreDisplay    = document.getElementById('score-display')!;
+    const progressBar     = document.getElementById('progress-bar')!;
+    const questionText    = document.getElementById('question-text')!;
+    const optionsArea     = document.getElementById('options-area')!;
+    const explanationArea = document.getElementById('explanation-area')!;
+    const explanationText = document.getElementById('explanation-text')!;
+    const nextBtn         = document.getElementById('next-btn')!;
+    const resultArea      = document.getElementById('result-area')!;
+    const retryBtn        = document.getElementById('retry-btn')!;
+
+    const phpEditorPanel   = document.getElementById('php-editor-panel')!;
+    const phpCodeEl        = document.getElementById('php-code') as HTMLTextAreaElement;
+    const phpOutput        = document.getElementById('php-output')!;
+    const phpStatus        = document.getElementById('php-status')!;
+    const runBtn           = document.getElementById('run-btn') as HTMLButtonElement;
+    const closeEditorBtn   = document.getElementById('close-editor-btn') as HTMLButtonElement;
+    const editorBtnArea    = document.getElementById('editor-btn-area')!;
+
+    closeEditorBtn.addEventListener('click', hideEditor);
+
+    // ── PHP エディタ ────────────────────────────────────────────
+    runBtn.addEventListener('click', async () => {
+      runBtn.disabled = true;
+      runBtn.textContent = '読込中...';
+      phpOutput.textContent = '—';
+      phpStatus.textContent = '';
+
+      try {
+        const php = await getPhp();
+        runBtn.textContent = '実行中...';
+        const result = await php.run({ code: phpCodeEl.value });
+        phpOutput.textContent = result.text?.trim() || '（出力なし）';
+        phpStatus.textContent = '終了コード: 0';
+        phpStatus.className = 'text-xs font-mono text-green-400';
+      } catch (err: any) {
+        const resp = err?.response;
+        if (resp) {
+          phpOutput.textContent = resp.text?.trim() || resp.errors?.trim() || '（出力なし）';
+          phpStatus.textContent = `終了コード: ${resp.exitCode}`;
+          phpStatus.className = 'text-xs font-mono text-red-400';
+        } else {
+          phpOutput.textContent = `読み込みエラー: ${err?.message ?? err}`;
+          phpStatus.textContent = '';
+        }
+      } finally {
+        runBtn.disabled = false;
+        runBtn.textContent = '▶ 実行';
+      }
+    });
+
+    function showEditor(code: string) {
+      if (window.innerWidth < 768) return;
+      phpCodeEl.value = code;
+      phpOutput.textContent = '—';
+      phpStatus.textContent = '';
+      phpStatus.className = 'text-xs text-gray-500';
+      phpEditorPanel.classList.remove('hidden');
+    }
+
+    function hideEditor() {
+      phpEditorPanel.classList.add('hidden');
+    }
+
+    // ── クイズロジック ──────────────────────────────────────────
+    let questions: any[] = [];
     let currentIndex = 0;
-    let score = 0;
-    let answered = false;
-    let results = [];
+    let score        = 0;
+    let answered     = false;
+    const results: any[] = [];
 
-    const questionArea = document.getElementById('question-area');
-    const questionCounter = document.getElementById('question-counter');
-    const scoreDisplay = document.getElementById('score-display');
-    const progressBar = document.getElementById('progress-bar');
-    const questionText = document.getElementById('question-text');
-    const optionsArea = document.getElementById('options-area');
-    const explanationArea = document.getElementById('explanation-area');
-    const explanationText = document.getElementById('explanation-text');
-    const nextBtn = document.getElementById('next-btn');
-    const resultArea = document.getElementById('result-area');
-    const retryBtn = document.getElementById('retry-btn');
+    function saveProgress(slug: string, s: number, total: number) {
+      try {
+        localStorage.setItem(
+          STORAGE_PREFIX + slug,
+          JSON.stringify({ score: s, total, date: new Date().toISOString().slice(0, 10) })
+        );
+      } catch {}
+    }
 
     function startQuiz() {
       questions = shuffle(allQuestions).map(shuffleOptions);
       currentIndex = 0;
       score = 0;
       answered = false;
-      results = [];
+      results.length = 0;
       resultArea.classList.add('hidden');
+      hideEditor();
       showQuestion(0);
     }
 
-    function showQuestion(index) {
+    function showQuestion(index: number) {
       answered = false;
-      const q = questions[index];
+      const q     = questions[index];
       const total = questions.length;
 
       questionCounter.textContent = `問 ${index + 1} / ${total}`;
-      scoreDisplay.textContent = `正解: ${score}`;
-      progressBar.style.width = `${(index / total) * 100}%`;
-      questionText.textContent = q.text;
+      scoreDisplay.textContent    = `正解: ${score}`;
+      progressBar.style.width     = `${(index / total) * 100}%`;
+      questionText.textContent    = q.text;
 
       optionsArea.innerHTML = '';
       explanationArea.classList.add('hidden');
       nextBtn.classList.add('hidden');
+      editorBtnArea.innerHTML = '';
+      hideEditor();
 
-      q.options.forEach((opt) => {
+      q.options.forEach((opt: any) => {
         const btn = document.createElement('button');
         btn.dataset.id = opt.id;
         btn.className =
@@ -190,7 +322,7 @@ const questionsJson = JSON.stringify(chapterQuestions);
       questionArea.classList.remove('hidden');
     }
 
-    function onAnswer(selectedId, q) {
+    function onAnswer(selectedId: string, q: any) {
       if (answered) return;
       answered = true;
 
@@ -198,8 +330,7 @@ const questionsJson = JSON.stringify(chapterQuestions);
       if (isCorrect) score++;
       results.push({ q, selectedId, isCorrect });
 
-      // ボタンの色付け
-      optionsArea.querySelectorAll('button').forEach((btn) => {
+      optionsArea.querySelectorAll('button').forEach((btn: any) => {
         btn.disabled = true;
         if (btn.dataset.id === q.correctId) {
           btn.className =
@@ -215,6 +346,18 @@ const questionsJson = JSON.stringify(chapterQuestions);
       nextBtn.classList.remove('hidden');
       nextBtn.textContent =
         currentIndex < questions.length - 1 ? '次の問題 →' : '結果を見る';
+
+      const phpCode = extractPhpCode(q.text);
+      if (phpCode && window.innerWidth >= 768) {
+        const btn = document.createElement('button');
+        btn.className = 'flex items-center gap-2 text-sm font-medium text-indigo-600 border border-indigo-300 bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 px-4 py-2 rounded-lg transition-colors';
+        btn.innerHTML = '<span>⌨</span><span>エディターで確認</span>';
+        btn.addEventListener('click', () => {
+          showEditor(phpCode);
+          phpEditorPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        editorBtnArea.appendChild(btn);
+      }
     }
 
     nextBtn.addEventListener('click', () => {
@@ -226,16 +369,14 @@ const questionsJson = JSON.stringify(chapterQuestions);
       }
     });
 
-    async function saveToServer(chapterSlug, score, total) {
+    async function saveToServer(chapterSlug: string, s: number, total: number) {
       try {
         await fetch('/api/quiz/save', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chapterSlug, score, total }),
+          body: JSON.stringify({ chapterSlug, score: s, total }),
         });
-      } catch {
-        // ログアウト中や通信エラー時は無視
-      }
+      } catch {}
     }
 
     function showResult() {
@@ -243,9 +384,8 @@ const questionsJson = JSON.stringify(chapterQuestions);
       resultArea.classList.remove('hidden');
 
       const total = questions.length;
-      const pct = Math.round((score / total) * 100);
+      const pct   = Math.round((score / total) * 100);
 
-      // localStorage に最高スコアを保存
       const slug = questions[0]?.chapterSlug;
       if (slug) {
         try {
@@ -254,29 +394,34 @@ const questionsJson = JSON.stringify(chapterQuestions);
         } catch {
           saveProgress(slug, score, total);
         }
-        // ログイン済みの場合はサーバーにも保存
         saveToServer(slug, score, total);
       }
 
-      document.getElementById('result-emoji').textContent =
+      document.getElementById('result-emoji')!.textContent =
         pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '📚';
-      document.getElementById('result-title').textContent =
+      document.getElementById('result-title')!.textContent =
         pct >= 80 ? '素晴らしい！' : pct >= 60 ? 'もう少しです！' : '復習しましょう';
-      document.getElementById('result-score').textContent = `${score} / ${total}`;
+      document.getElementById('result-score')!.textContent = `${score} / ${total}`;
 
-      const detail = document.getElementById('result-detail');
+      const detail = document.getElementById('result-detail')!;
       detail.innerHTML = '';
       results.forEach((r, i) => {
-        const correctOpt = r.q.options.find((o) => o.id === r.q.correctId);
-        const selectedOpt = r.q.options.find((o) => o.id === r.selectedId);
+        const correctOpt  = r.q.options.find((o: any) => o.id === r.q.correctId);
+        const selectedOpt = r.q.options.find((o: any) => o.id === r.selectedId);
         const div = document.createElement('div');
-        div.className = `rounded-xl border p-4 ${r.isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`;
+        div.className = `rounded-xl border p-4 ${
+          r.isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
+        }`;
         div.innerHTML = `
           <p class="text-xs font-bold mb-1 ${r.isCorrect ? 'text-green-700' : 'text-red-700'}">
             問${i + 1} ${r.isCorrect ? '正解 ✓' : '不正解 ✗'}
           </p>
           <p class="text-sm text-gray-700 whitespace-pre-wrap mb-2">${r.q.text}</p>
-          ${!r.isCorrect ? `<p class="text-xs text-red-600 mb-1">あなたの解答: ${selectedOpt?.text ?? ''}</p>` : ''}
+          ${
+            !r.isCorrect
+              ? `<p class="text-xs text-red-600 mb-1">あなたの解答: ${selectedOpt?.text ?? ''}</p>`
+              : ''
+          }
           <p class="text-xs text-green-700 font-medium">正解: ${correctOpt?.text ?? ''}</p>
           <p class="text-xs text-gray-500 mt-1">${r.q.explanation}</p>
         `;
