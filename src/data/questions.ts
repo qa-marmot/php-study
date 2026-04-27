@@ -2530,10 +2530,10 @@ export const questions: Question[] = [
         { id: 'a', text: '$client->fetch(\'GET\', \'https://example.com\')' },
         { id: 'b', text: '$client->get(\'https://example.com\')' },
         { id: 'c', text: '$client->send(\'GET\', \'https://example.com\')' },
-        { id: 'd', text: '$client->request(\'get\', \'https://example.com\')' },
+        { id: 'd', text: '$client->request(\'https://example.com\', \'GET\')' },
       ],
       correctId: 'b',
-      explanation: 'Guzzleでは$client->get(URL)でGETリクエストを送信できる。同様にpost(), put(), delete()などのHTTPメソッド名のショートカットメソッドが利用できる。',
+      explanation: 'Guzzleでは$client->get(URL)でGETリクエストを送信できる。同様にpost(), put(), delete()などのHTTPメソッド名のショートカットメソッドが利用できる。D（誤）: requestメソッドはrequest(メソッド名, URL)の順で第1引数がHTTPメソッド、第2引数がURLのため引数が逆でエラーになる。',
     },
     {
       id: 'q195',
