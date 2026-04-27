@@ -38,6 +38,56 @@ const questionsJson = JSON.stringify(chapterQuestions);
     <!-- クイズコンテナ -->
     <div id="quiz-container">
 
+      <!-- PHP エディタ（PC専用・結果画面の確認ボタンで表示） -->
+      <div id="php-editor-panel" class="hidden mb-6">
+        <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-700">
+          <!-- タイトルバー -->
+          <div class="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+            <div class="flex items-center gap-3">
+              <div class="flex gap-1.5">
+                <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+              </div>
+              <span class="text-xs text-gray-400 font-mono">PHP 8.2 — コードを編集して実行できます</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                id="run-btn"
+                class="flex items-center gap-1.5 text-xs bg-green-600 hover:bg-green-500 active:bg-green-700 text-white px-3 py-1.5 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ▶ 実行
+              </button>
+              <button
+                id="close-editor-btn"
+                class="text-gray-400 hover:text-gray-200 text-xs px-2 py-1.5 rounded transition-colors"
+                title="閉じる"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+          <!-- コードエリア -->
+          <textarea
+            id="php-code"
+            class="w-full bg-gray-900 text-green-300 font-mono text-sm p-4 resize-none outline-none leading-relaxed"
+            rows="8"
+            spellcheck="false"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+          ></textarea>
+          <!-- 出力エリア -->
+          <div class="border-t border-gray-700 bg-gray-950 px-4 py-3">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs text-gray-500 font-mono">出力</span>
+              <span id="php-status" class="text-xs text-gray-500"></span>
+            </div>
+            <pre id="php-output" class="text-sm text-gray-200 font-mono whitespace-pre-wrap min-h-5 leading-relaxed">—</pre>
+          </div>
+        </div>
+      </div>
+
       <!-- 問題表示エリア -->
       <div id="question-area" class="hidden">
         <div class="mb-3 flex items-center justify-between text-sm text-gray-400">
@@ -52,47 +102,6 @@ const questionsJson = JSON.stringify(chapterQuestions);
 
         <div class="bg-white border border-gray-200 rounded-xl p-6 mb-4">
           <p id="question-text" class="text-gray-800 font-medium leading-relaxed whitespace-pre-wrap"></p>
-        </div>
-
-        <!-- PHP エディタ（PC専用・768px未満では JS で非表示） -->
-        <div id="php-editor-panel" class="hidden mb-4">
-          <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-700">
-            <!-- タイトルバー -->
-            <div class="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
-              <div class="flex items-center gap-3">
-                <div class="flex gap-1.5">
-                  <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
-                  <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
-                  <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
-                </div>
-                <span class="text-xs text-gray-400 font-mono">PHP 8.2 — コードを編集して実行できます</span>
-              </div>
-              <button
-                id="run-btn"
-                class="flex items-center gap-1.5 text-xs bg-green-600 hover:bg-green-500 active:bg-green-700 text-white px-3 py-1.5 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                ▶ 実行
-              </button>
-            </div>
-            <!-- コードエリア -->
-            <textarea
-              id="php-code"
-              class="w-full bg-gray-900 text-green-300 font-mono text-sm p-4 resize-none outline-none leading-relaxed"
-              rows="8"
-              spellcheck="false"
-              autocomplete="off"
-              autocorrect="off"
-              autocapitalize="off"
-            ></textarea>
-            <!-- 出力エリア -->
-            <div class="border-t border-gray-700 bg-gray-950 px-4 py-3">
-              <div class="flex items-center justify-between mb-1.5">
-                <span class="text-xs text-gray-500 font-mono">出力</span>
-                <span id="php-status" class="text-xs text-gray-500"></span>
-              </div>
-              <pre id="php-output" class="text-sm text-gray-200 font-mono whitespace-pre-wrap min-h-5 leading-relaxed">—</pre>
-            </div>
-          </div>
         </div>
 
         <div id="options-area" class="space-y-3 mb-4"></div>
@@ -202,11 +211,14 @@ const questionsJson = JSON.stringify(chapterQuestions);
     const resultArea      = document.getElementById('result-area')!;
     const retryBtn        = document.getElementById('retry-btn')!;
 
-    const phpEditorPanel  = document.getElementById('php-editor-panel')!;
-    const phpCodeEl       = document.getElementById('php-code') as HTMLTextAreaElement;
-    const phpOutput       = document.getElementById('php-output')!;
-    const phpStatus       = document.getElementById('php-status')!;
-    const runBtn          = document.getElementById('run-btn') as HTMLButtonElement;
+    const phpEditorPanel   = document.getElementById('php-editor-panel')!;
+    const phpCodeEl        = document.getElementById('php-code') as HTMLTextAreaElement;
+    const phpOutput        = document.getElementById('php-output')!;
+    const phpStatus        = document.getElementById('php-status')!;
+    const runBtn           = document.getElementById('run-btn') as HTMLButtonElement;
+    const closeEditorBtn   = document.getElementById('close-editor-btn') as HTMLButtonElement;
+
+    closeEditorBtn.addEventListener('click', hideEditor);
 
     // ── PHP エディタ ────────────────────────────────────────────
     runBtn.addEventListener('click', async () => {
@@ -282,14 +294,6 @@ const questionsJson = JSON.stringify(chapterQuestions);
       explanationArea.classList.add('hidden');
       nextBtn.classList.add('hidden');
 
-      // PHP コードがあればエディタを表示（PC のみ）
-      const code = extractPhpCode(q.text);
-      if (code) {
-        showEditor(code);
-      } else {
-        hideEditor();
-      }
-
       q.options.forEach((opt: any) => {
         const btn = document.createElement('button');
         btn.dataset.id = opt.id;
@@ -350,7 +354,6 @@ const questionsJson = JSON.stringify(chapterQuestions);
 
     function showResult() {
       questionArea.classList.add('hidden');
-      hideEditor();
       resultArea.classList.remove('hidden');
 
       const total = questions.length;
@@ -395,6 +398,18 @@ const questionsJson = JSON.stringify(chapterQuestions);
           <p class="text-xs text-green-700 font-medium">正解: ${correctOpt?.text ?? ''}</p>
           <p class="text-xs text-gray-500 mt-1">${r.q.explanation}</p>
         `;
+        // PC のみ: PHP コードがある問題にエディタ確認ボタンを表示
+        const phpCode = extractPhpCode(r.q.text);
+        if (phpCode && window.innerWidth >= 768) {
+          const editorBtn = document.createElement('button');
+          editorBtn.className = 'mt-2 text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 transition-colors';
+          editorBtn.textContent = '▶ エディターで確認';
+          editorBtn.addEventListener('click', () => {
+            showEditor(phpCode);
+            phpEditorPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+          div.appendChild(editorBtn);
+        }
         detail.appendChild(div);
       });
     }
@@ -405,6 +420,7 @@ const questionsJson = JSON.stringify(chapterQuestions);
       answered     = false;
       results.length = 0;
       resultArea.classList.add('hidden');
+      hideEditor();
       showQuestion(0);
     });
 
