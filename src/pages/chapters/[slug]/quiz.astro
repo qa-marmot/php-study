@@ -169,7 +169,9 @@ const questionsJson = JSON.stringify(chapterQuestions);
 
     async function getPhp() {
       if (phpInstance) return phpInstance;
-      const { PHP } = await import('@php-wasm/web');
+      // CDNからロード — バンドルしないことでCloudflare Pagesのファイルサイズ制限を回避
+      // @ts-ignore
+      const { PHP } = await import('https://esm.sh/@php-wasm/web@3.1.20');
       phpInstance = await PHP.load('8.2');
       return phpInstance;
     }

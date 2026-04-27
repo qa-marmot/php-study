@@ -7,9 +7,5 @@ export default defineConfig({
   output: 'static',
   vite: {
     plugins: [tailwindcss()],
-    optimizeDeps: {
-      exclude: ['@php-wasm/web'],
-    },
-    assetsInclude: ['**/*.wasm', '**/*.dat'],
   },
 });
