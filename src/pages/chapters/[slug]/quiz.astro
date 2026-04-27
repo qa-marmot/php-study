@@ -169,12 +169,10 @@ const questionsJson = JSON.stringify(chapterQuestions);
 
     async function getPhp() {
       if (phpInstance) return phpInstance;
-      // CDNからロード — バンドルしないことでCloudflare Pagesのファイルサイズ制限を回避
-      // @php-wasm/web@3.x のAPI: loadWebRuntime + PHP(runtime) の組み合わせ
-      // @ts-ignore
+      // @php-wasm/web v3.x のAPI: loadWebRuntime でランタイム取得 → new PHP(runtime) でインスタンス化
       const [{ loadWebRuntime }, { PHP }] = await Promise.all([
-        import('https://esm.sh/@php-wasm/web@3.1.20'),
-        import('https://esm.sh/@php-wasm/universal@3.1.20'),
+        import('@php-wasm/web'),
+        import('@php-wasm/universal'),
       ]);
       const runtime = await loadWebRuntime('8.2');
       phpInstance = new PHP(runtime);
