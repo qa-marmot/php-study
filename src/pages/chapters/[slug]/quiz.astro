@@ -347,8 +347,8 @@ const questionsJson = JSON.stringify(chapterQuestions);
       nextBtn.textContent =
         currentIndex < questions.length - 1 ? '次の問題 →' : '結果を見る';
 
-      const phpCode = extractPhpCode(q.text);
-      if (phpCode && window.innerWidth >= 768) {
+      if (window.innerWidth >= 768) {
+        const phpCode = extractPhpCode(q.text) ?? '<?php\n';
         const btn = document.createElement('button');
         btn.className = 'flex items-center gap-2 text-sm font-medium text-indigo-600 border border-indigo-300 bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 px-4 py-2 rounded-lg transition-colors';
         btn.innerHTML = '<span>⌨</span><span>エディターで確認</span>';
