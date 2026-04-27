@@ -175,6 +175,8 @@ const questionsJson = JSON.stringify(questions);
 </script>
 
 <script>
+  import { shuffle, shuffleOptions } from '../lib/quizUtils';
+
   const STORAGE_PREFIX = 'php-study-progress-';
   const MISTAKE_KEY = 'php-study-mistakes';
 
@@ -256,15 +258,6 @@ const questionsJson = JSON.stringify(questions);
   }
 
   // ── ユーティリティ ──────────────────────────────────────────────
-  function shuffle<T>(arr: T[]): T[] {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
   function loadMistakes(): Set<string> {
     try {
       const raw = localStorage.getItem(MISTAKE_KEY);
@@ -323,7 +316,7 @@ const questionsJson = JSON.stringify(questions);
   };
 
   function startQuiz(pool: any[]) {
-    questions = shuffle(pool);
+    questions = shuffle(pool).map(shuffleOptions);
     currentIndex = 0;
     score = 0;
     answered = false;

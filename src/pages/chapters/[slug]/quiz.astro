@@ -169,10 +169,12 @@ const questionsJson = JSON.stringify(chapterQuestions);
 
 <!-- メインスクリプト（Vite がモジュールとして処理 → 動的 import 可） -->
 <script>
-  const STORAGE_PREFIX = 'php-study-progress-';
-  const questions: any[] = (window as any).__QUIZ_QUESTIONS__ ?? [];
+  import { shuffle, shuffleOptions } from '../../../lib/quizUtils';
 
-  if (questions.length === 0) {
+  const STORAGE_PREFIX = 'php-study-progress-';
+  const allQuestions: any[] = (window as any).__QUIZ_QUESTIONS__ ?? [];
+
+  if (allQuestions.length === 0) {
     // 問題なし → 処理不要
   } else {
     // ── PHP-WASM ────────────────────────────────────────────────
@@ -180,7 +182,6 @@ const questionsJson = JSON.stringify(chapterQuestions);
 
     async function getPhp() {
       if (phpInstance) return phpInstance;
-      // @php-wasm/web v3.x のAPI: loadWebRuntime でランタイム取得 → new PHP(runtime) でインスタンス化
       const [{ loadWebRuntime }, { PHP }] = await Promise.all([
         import('@php-wasm/web'),
         import('@php-wasm/universal'),
@@ -190,7 +191,6 @@ const questionsJson = JSON.stringify(chapterQuestions);
       return phpInstance;
     }
 
-    // PC のみ: ブラウザのアイドル時間にこっそりプリロード
     if (window.innerWidth >= 768 && 'requestIdleCallback' in window) {
       requestIdleCallback(() => getPhp().catch(() => {}));
     }
@@ -238,8 +238,6 @@ const questionsJson = JSON.stringify(chapterQuestions);
         phpStatus.textContent = '終了コード: 0';
         phpStatus.className = 'text-xs font-mono text-green-400';
       } catch (err: any) {
-        // exitCode !== 0 のとき PHP は PHPExecutionFailureError をスロー
-        // err.response に PHPResponse が入っている
         const resp = err?.response;
         if (resp) {
           phpOutput.textContent = resp.text?.trim() || resp.errors?.trim() || '（出力なし）';
@@ -256,7 +254,7 @@ const questionsJson = JSON.stringify(chapterQuestions);
     });
 
     function showEditor(code: string) {
-      if (window.innerWidth < 768) return; // SP は非表示
+      if (window.innerWidth < 768) return;
       phpCodeEl.value = code;
       phpOutput.textContent = '—';
       phpStatus.textContent = '';
@@ -269,6 +267,7 @@ const questionsJson = JSON.stringify(chapterQuestions);
     }
 
     // ── クイズロジック ──────────────────────────────────────────
+    let questions: any[] = [];
     let currentIndex = 0;
     let score        = 0;
     let answered     = false;
@@ -281,6 +280,17 @@ const questionsJson = JSON.stringify(chapterQuestions);
           JSON.stringify({ score: s, total, date: new Date().toISOString().slice(0, 10) })
         );
       } catch {}
+    }
+
+    function startQuiz() {
+      questions = shuffle(allQuestions).map(shuffleOptions);
+      currentIndex = 0;
+      score = 0;
+      answered = false;
+      results.length = 0;
+      resultArea.classList.add('hidden');
+      hideEditor();
+      showQuestion(0);
     }
 
     function showQuestion(index: number) {
@@ -337,7 +347,6 @@ const questionsJson = JSON.stringify(chapterQuestions);
       nextBtn.textContent =
         currentIndex < questions.length - 1 ? '次の問題 →' : '結果を見る';
 
-      // PC のみ: PHP コードがある問題にエディタ確認ボタンを表示
       const phpCode = extractPhpCode(q.text);
       if (phpCode && window.innerWidth >= 768) {
         const btn = document.createElement('button');
@@ -420,17 +429,9 @@ const questionsJson = JSON.stringify(chapterQuestions);
       });
     }
 
-    retryBtn.addEventListener('click', () => {
-      currentIndex = 0;
-      score        = 0;
-      answered     = false;
-      results.length = 0;
-      resultArea.classList.add('hidden');
-      hideEditor();
-      showQuestion(0);
-    });
+    retryBtn.addEventListener('click', () => startQuiz());
 
     // 初期表示
-    showQuestion(0);
+    startQuiz();
   }
 </script>
