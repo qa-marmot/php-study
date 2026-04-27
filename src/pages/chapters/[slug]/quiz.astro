@@ -112,6 +112,9 @@ const questionsJson = JSON.stringify(chapterQuestions);
           <p id="explanation-text" class="text-sm text-indigo-700 leading-relaxed"></p>
         </div>
 
+        <!-- エディタ確認ボタン（PC専用・解答後にPHPコードがある問題でのみ表示） -->
+        <div id="editor-btn-area" class="hidden mb-4"></div>
+
         <div class="flex justify-end">
           <button
             id="next-btn"
@@ -217,6 +220,7 @@ const questionsJson = JSON.stringify(chapterQuestions);
     const phpStatus        = document.getElementById('php-status')!;
     const runBtn           = document.getElementById('run-btn') as HTMLButtonElement;
     const closeEditorBtn   = document.getElementById('close-editor-btn') as HTMLButtonElement;
+    const editorBtnArea    = document.getElementById('editor-btn-area')!;
 
     closeEditorBtn.addEventListener('click', hideEditor);
 
@@ -293,6 +297,9 @@ const questionsJson = JSON.stringify(chapterQuestions);
       optionsArea.innerHTML = '';
       explanationArea.classList.add('hidden');
       nextBtn.classList.add('hidden');
+      editorBtnArea.innerHTML = '';
+      editorBtnArea.classList.add('hidden');
+      hideEditor();
 
       q.options.forEach((opt: any) => {
         const btn = document.createElement('button');
@@ -331,6 +338,20 @@ const questionsJson = JSON.stringify(chapterQuestions);
       nextBtn.classList.remove('hidden');
       nextBtn.textContent =
         currentIndex < questions.length - 1 ? '次の問題 →' : '結果を見る';
+
+      // PC のみ: PHP コードがある問題にエディタ確認ボタンを表示
+      const phpCode = extractPhpCode(q.text);
+      if (phpCode && window.innerWidth >= 768) {
+        const btn = document.createElement('button');
+        btn.className = 'text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 transition-colors';
+        btn.textContent = '▶ エディターで確認';
+        btn.addEventListener('click', () => {
+          showEditor(phpCode);
+          phpEditorPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        editorBtnArea.appendChild(btn);
+        editorBtnArea.classList.remove('hidden');
+      }
     }
 
     nextBtn.addEventListener('click', () => {
@@ -398,18 +419,6 @@ const questionsJson = JSON.stringify(chapterQuestions);
           <p class="text-xs text-green-700 font-medium">正解: ${correctOpt?.text ?? ''}</p>
           <p class="text-xs text-gray-500 mt-1">${r.q.explanation}</p>
         `;
-        // PC のみ: PHP コードがある問題にエディタ確認ボタンを表示
-        const phpCode = extractPhpCode(r.q.text);
-        if (phpCode && window.innerWidth >= 768) {
-          const editorBtn = document.createElement('button');
-          editorBtn.className = 'mt-2 text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 transition-colors';
-          editorBtn.textContent = '▶ エディターで確認';
-          editorBtn.addEventListener('click', () => {
-            showEditor(phpCode);
-            phpEditorPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          });
-          div.appendChild(editorBtn);
-        }
         detail.appendChild(div);
       });
     }
