@@ -10,6 +10,6 @@ export default defineConfig({
     optimizeDeps: {
       exclude: ['@php-wasm/web'],
     },
-    assetsInclude: ['**/*.wasm'],
+    assetsInclude: ['**/*.wasm', '**/*.dat'],
   },
 });
