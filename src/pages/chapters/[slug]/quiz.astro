@@ -38,6 +38,26 @@ const questionsJson = JSON.stringify(chapterQuestions);
     <!-- クイズコンテナ -->
     <div id="quiz-container">
 
+      <!-- スタート画面 -->
+      {chapterQuestions.length > 0 && (
+        <div id="start-area" class="bg-white border border-gray-200 rounded-xl p-8 text-center mb-6">
+          <h2 class="text-lg font-bold text-gray-800 mb-2">練習問題を始めよう</h2>
+          <p class="text-sm text-gray-500 mb-4">全{chapterQuestions.length}問</p>
+          <div class="flex justify-center mb-5">
+            <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden divide-x divide-gray-200 text-sm">
+              <button id="mode-sequential-btn" class="px-4 py-2 text-gray-600 hover:bg-gray-50 transition-colors">順番通り</button>
+              <button id="mode-shuffle-btn" class="px-4 py-2 text-gray-600 hover:bg-gray-50 transition-colors">ランダム</button>
+            </div>
+          </div>
+          <button
+            id="start-btn"
+            class="bg-indigo-600 text-white font-medium px-6 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+          >
+            始める（{chapterQuestions.length}問）
+          </button>
+        </div>
+      )}
+
       <!-- PHP エディタ（PC専用・結果画面の確認ボタンで表示） -->
       <div id="php-editor-panel" class="hidden mb-6">
         <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-700">
@@ -282,12 +302,39 @@ const questionsJson = JSON.stringify(chapterQuestions);
       } catch {}
     }
 
+    // ── 出題順モード ────────────────────────────────────────────────
+    const ORDER_MODE_KEY = 'php-study-order-mode';
+
+    function getOrderMode(): 'shuffle' | 'sequential' {
+      return (localStorage.getItem(ORDER_MODE_KEY) as 'shuffle' | 'sequential') ?? 'shuffle';
+    }
+
+    function setOrderMode(mode: 'shuffle' | 'sequential') {
+      localStorage.setItem(ORDER_MODE_KEY, mode);
+      updateModeUI(mode);
+    }
+
+    function updateModeUI(mode: 'shuffle' | 'sequential') {
+      const active   = 'px-4 py-2 bg-indigo-600 text-white text-sm font-medium transition-colors';
+      const inactive = 'px-4 py-2 text-gray-600 hover:bg-gray-50 text-sm transition-colors';
+      document.getElementById('mode-sequential-btn')!.className = mode === 'sequential' ? active : inactive;
+      document.getElementById('mode-shuffle-btn')!.className    = mode === 'shuffle'     ? active : inactive;
+    }
+
+    document.getElementById('mode-sequential-btn')!.addEventListener('click', () => setOrderMode('sequential'));
+    document.getElementById('mode-shuffle-btn')!.addEventListener('click', () => setOrderMode('shuffle'));
+    document.getElementById('start-btn')!.addEventListener('click', () => startQuiz());
+    updateModeUI(getOrderMode());
+
     function startQuiz() {
-      questions = shuffle(allQuestions).map(shuffleOptions);
+      const startArea = document.getElementById('start-area')!;
+      const mode = getOrderMode();
+      questions = (mode === 'shuffle' ? shuffle(allQuestions) : [...allQuestions]).map(shuffleOptions);
       currentIndex = 0;
       score = 0;
       answered = false;
       results.length = 0;
+      startArea.classList.add('hidden');
       resultArea.classList.add('hidden');
       hideEditor();
       showQuestion(0);
@@ -429,9 +476,10 @@ const questionsJson = JSON.stringify(chapterQuestions);
       });
     }
 
-    retryBtn.addEventListener('click', () => startQuiz());
-
-    // 初期表示
-    startQuiz();
+    retryBtn.addEventListener('click', () => {
+      resultArea.classList.add('hidden');
+      hideEditor();
+      document.getElementById('start-area')!.classList.remove('hidden');
+    });
   }
 </script>
