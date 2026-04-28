@@ -692,7 +692,7 @@ export const questions: Question[] = [
     {
       id: 'q053',
       chapterSlug: 'chapter-02',
-      text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$arr = [5 => \'a\', 3 => \'b\', 8 => \'c\'];\n$arr[] = \'d\';\necho array_key_last($arr);',
+      text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$arr = [5 => \'a\', 3 => \'b\', 8 => \'c\'];\n$arr[] = \'d\';\necho array_key_last($arr); // array_key_last(): 配列の最後のキーを返す',
       options: [
         { id: 'a', text: '3' },
         { id: 'b', text: '8' },
@@ -1069,7 +1069,7 @@ export const questions: Question[] = [
     {
       id: 'q082',
       chapterSlug: 'chapter-03',
-      text: '以下のコードの動作として正しいものはどれか。\n\n<?php\n$pdo = @new PDO(\'invalid_dsn\');\nvar_dump($pdo);',
+      text: '以下のコードの動作として正しいものはどれか。\n\n<?php\n$pdo = @new PDO(\'invalid_dsn\'); // \'invalid_dsn\'は無効なため接続は失敗する\nvar_dump($pdo);',
       options: [
         { id: 'a', text: '@ によりエラーが完全に抑制され、$pdo には null が格納される' },
         { id: 'b', text: '@ でエラーメッセージは抑制されるが、PDOのコンストラクターが例外をスローするため例外は抑制されない' },
@@ -1810,7 +1810,7 @@ export const questions: Question[] = [
     {
       id: 'q139',
       chapterSlug: 'chapter-05',
-      text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$people = ["Bob", "Alice", "Carol"];\nusort($people, fn($a, $b) => strcmp($a, $b));\necho implode(", ", $people);',
+      text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$people = ["Bob", "Alice", "Carol"];\nusort($people, fn($a, $b) => $a <=> $b);\necho implode(", ", $people);',
       options: [
         { id: 'a', text: 'Bob, Alice, Carol' },
         { id: 'b', text: 'Alice, Bob, Carol' },
@@ -1818,7 +1818,7 @@ export const questions: Question[] = [
         { id: 'd', text: 'エラーになる' },
       ],
       correctId: 'b',
-      explanation: '- B（正解）: usort はユーザー定義コールバックで比較する。strcmp($a, $b) は文字列の辞書順比較（負=前、0=等、正=後）。Alice < Bob < Carol の辞書順になる。 A（誤）: 元の順序のまま。 C（誤）: 逆順になる。 D（誤）: アロー関数は正しい構文。',
+      explanation: '- B（正解）: usort はユーザー定義コールバックで配列をソートする。宇宙船演算子（<=>）は左辺<右辺なら負、等しければ0、左辺>右辺なら正を返すため辞書順昇順になる。Alice < Bob < Carol の辞書順になる。 A（誤）: 元の順序のまま。 C（誤）: 逆順になる。 D（誤）: アロー関数と宇宙船演算子は正しい構文。',
     },
     {
       id: 'q140',
@@ -1914,7 +1914,7 @@ export const questions: Question[] = [
     {
       id: 'q147',
       chapterSlug: 'chapter-05',
-      text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$str = "Hello";\n$str .= ", ";\n$str .= "World";\n$str .= "!";\necho strlen($str);',
+      text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$str = "Hello";\n$str .= ", "; // カンマ＋スペースで2文字\n$str .= "World";\n$str .= "!";\necho strlen($str);',
       options: [
         { id: 'a', text: '5' },
         { id: 'b', text: '12' },
@@ -1926,7 +1926,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q148',
-      chapterSlug: 'chapter-05',
+      chapterSlug: 'chapter-07',
       text: '以下のコードの出力結果として正しいものはどれか。\n$data = [\'a\' => 1, \'b\' => true, \'c\' => null];\necho json_encode($data);',
       options: [
         { id: 'a', text: '{"a":1,"b":true,"c":null}' },
@@ -1939,7 +1939,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q149',
-      chapterSlug: 'chapter-05',
+      chapterSlug: 'chapter-07',
       text: 'json_decode()で第2引数にtrueを渡した場合の動作として正しいものはどれか。',
       options: [
         { id: 'a', text: 'JSONをstdClassオブジェクトとして返す' },
@@ -1952,7 +1952,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q150',
-      chapterSlug: 'chapter-05',
+      chapterSlug: 'chapter-07',
       text: 'json_encode()で日本語文字列をUnicodeエスケープせずにそのまま出力するために使用するオプション定数はどれか。',
       options: [
         { id: 'a', text: 'JSON_PRETTY_PRINT' },
@@ -1965,7 +1965,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q151',
-      chapterSlug: 'chapter-05',
+      chapterSlug: 'chapter-03',
       text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$arr = [\'a\' => 1, \'b\' => null, \'c\' => 0];\nvar_dump(isset($arr[\'b\']));\nvar_dump(isset($arr[\'d\']));',
       options: [
         { id: 'a', text: 'bool(true) / bool(true)' },
@@ -2018,7 +2018,7 @@ export const questions: Question[] = [
     {
       id: 'q155',
       chapterSlug: 'chapter-05',
-      text: '以下のコードの出力結果として正しいものはどれか。\n\n<?php\n$nums = [3, 1, 4, 1, 5, 9];\necho max($nums) . \' \' . min($nums) . \' \' . array_sum($nums);',
+      text: '以下のコードの出力結果として正しいものはどれか。\n\n<?php\n$nums = [3, 1, 4, 1, 5, 9];\necho max($nums) . \' \' . min($nums) . \' \' . array_sum($nums); // array_sum(): 配列の全要素の合計を返す',
       options: [
         { id: 'a', text: '9 1 23' },
         { id: 'b', text: '9 0 23' },
@@ -2057,15 +2057,15 @@ export const questions: Question[] = [
     {
       id: 'q158',
       chapterSlug: 'chapter-05',
-      text: 'ファイル名「sample-code.old.php」から拡張子「php」を取得できるコードはどれか。\n$filename = \'sample-code.old.php\';',
+      text: 'ファイル名「sample-code.old.php」から拡張子「php」を取得できるコードはどれか。\n$filename = \'sample-code.old.php\';\n// pathinfo($path, オプション): ファイルパスの情報を取得する',
       options: [
-        { id: 'a', text: 'substr($filename, -3)' },
-        { id: 'b', text: "strstr($filename, '.')" },
-        { id: 'c', text: 'substr($filename, strpos($filename, \'.\'), strrpos($filename, \'.\'))' },
-        { id: 'd', text: "explode('.', $filename)[count(explode('.', $filename))]" },
+        { id: 'a', text: "strstr($filename, '.')" },
+        { id: 'b', text: 'pathinfo($filename, PATHINFO_EXTENSION)' },
+        { id: 'c', text: 'pathinfo($filename, PATHINFO_FILENAME)' },
+        { id: 'd', text: "explode('.', $filename)[0]" },
       ],
-      correctId: 'a',
-      explanation: 'substr($filename, -3)は末尾から3文字を返すため\'php\'が得られる。strstr($filename, \'.\')は最初のドット以降を返し\'.old.php\'になる。選択肢dは配列の範囲外アクセスになる。',
+      correctId: 'b',
+      explanation: '- B（正解）: pathinfo($path, PATHINFO_EXTENSION) はファイルパスから拡張子のみを返す。「sample-code.old.php」の場合、最後のドット以降の「php」が得られる。 A（誤）: strstr($filename, \'.\') は最初のドット以降を返すため\'.old.php\'になる。 C（誤）: PATHINFO_FILENAME は拡張子を除いたファイル名（\"sample-code.old\"）を返す。 D（誤）: explode(\'.\', $filename)[0] は先頭要素の\"sample-code\"を返す。',
     },
     {
       id: 'q159',
@@ -2095,7 +2095,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q161',
-      chapterSlug: 'chapter-05',
+      chapterSlug: 'chapter-07',
       text: '12月25日の正午に実行した時に、12月24日の日付を取得できる書き方はどれか。',
       options: [
         { id: 'a', text: "date('1 day ago')" },
@@ -2108,7 +2108,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q162',
-      chapterSlug: 'chapter-05',
+      chapterSlug: 'chapter-07',
       text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$path = \'/var/www/html/app/index.php\';\necho pathinfo($path, PATHINFO_DIRNAME);\necho "\\n";\necho pathinfo($path, PATHINFO_FILENAME);',
       options: [
         { id: 'a', text: '/var/www/html/app / index' },
@@ -2460,15 +2460,15 @@ export const questions: Question[] = [
     {
       id: 'q189',
       chapterSlug: 'chapter-07',
-      text: 'DirectoryIteratorクラスでカレントエントリが\'.\'や\'..\'であることを確認するメソッドはどれか。',
+      text: 'DirectoryIteratorクラスでカレントエントリがファイルかどうかを確認するメソッドはどれか。',
       options: [
-        { id: 'a', text: 'isDotDir()' },
-        { id: 'b', text: 'isDot()' },
-        { id: 'c', text: 'isSpecial()' },
-        { id: 'd', text: 'isParent()' },
+        { id: 'a', text: 'isRegularFile()' },
+        { id: 'b', text: 'isFile()' },
+        { id: 'c', text: 'isDocument()' },
+        { id: 'd', text: 'getType() === \'file\'' },
       ],
       correctId: 'b',
-      explanation: 'DirectoryIteratorのisDot()メソッドはカレントのエントリが\'.\'や\'..\'（ドットエントリ）であるかを確認する。フォルダー処理でドットエントリをスキップする際に使用する。',
+      explanation: 'DirectoryIteratorの isFile() メソッドはカレントエントリが通常ファイルかどうかを返す。同様に isDir() はディレクトリか、isLink() はシンボリックリンクかを確認できる。',
     },
     {
       id: 'q190',
@@ -2564,7 +2564,7 @@ export const questions: Question[] = [
     {
       id: 'q197',
       chapterSlug: 'chapter-07',
-      text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$d1 = new DateTime(\'2024-01-31\');\n$d1->modify(\'+1 month\');\necho $d1->format(\'Y-m-d\');',
+      text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$d1 = new DateTime(\'2024-01-31\');\n$d1->modify(\'+1 month\'); // modify(): 相対的な日時文字列で日付を変更する\necho $d1->format(\'Y-m-d\');',
       options: [
         { id: 'a', text: '2024-02-29' },
         { id: 'b', text: '2024-02-28（または 2024-03-02、PHP実装依存）' },
@@ -2711,11 +2711,11 @@ export const questions: Question[] = [
       options: [
         { id: 'a', text: '$_REQUEST' },
         { id: 'b', text: '$_GLOBALS' },
-        { id: 'c', text: '$GLOBALS' },
+        { id: 'c', text: '$_SESSION' },
         { id: 'd', text: '$_FILES' },
       ],
       correctId: 'b',
-      explanation: '- B（正解）: $_GLOBALS は存在しない。正しくは $GLOBALS（アンダースコアなし）。 A（正解例）: $_REQUEST は $_GET・$_POST・$_COOKIE の内容をまとめたスーパーグローバル変数として存在する。 C（正解例）: $GLOBALS はすべてのグローバル変数を格納する正しいスーパーグローバル変数。 D（正解例）: $_FILES はアップロードファイル情報を格納する正しいスーパーグローバル変数。',
+      explanation: '- B（正解）: $_GLOBALS は存在しない。 A: $_REQUEST は $_GET・$_POST・$_COOKIE の内容をまとめたスーパーグローバル変数として存在する。 C: $_SESSION はセッションデータを格納するスーパーグローバル変数として存在する。 D: $_FILES はアップロードファイル情報を格納するスーパーグローバル変数として存在する。',
     },
     {
       id: 'q209',
@@ -2771,7 +2771,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q213',
-      chapterSlug: 'chapter-08',
+      chapterSlug: 'chapter-10',
       text: 'クラスとオブジェクト（インスタンス）の関係として最も適切な例えはどれか。',
       options: [
         { id: 'a', text: 'クラスはオブジェクトの1インスタンスである' },
@@ -2784,7 +2784,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q214',
-      chapterSlug: 'chapter-08',
+      chapterSlug: 'chapter-07',
       text: '以下のコードの動作として正しいものはどれか。\n\n<?php\n$dt1 = new DateTime(\'2024-06-15 12:00:00\');\n$dt2 = new DateTime(\'tomorrow\');\n$dt3 = new DateTime(\'+1 week\');\nvar_dump($dt1 instanceof DateTime);',
       options: [
         { id: 'a', text: 'エラーになる（\'tomorrow\' や \'+1 week\' は無効）' },
@@ -2797,7 +2797,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q215',
-      chapterSlug: 'chapter-08',
+      chapterSlug: 'chapter-07',
       text: '`DateTime::format()` の出力として正しいものはどれか。\n\n<?php\n$dt = new DateTime(\'2024-07-04 08:05:03\');\necho $dt->format(\'Y/m/d H:i:s\');\necho "\\n";\necho $dt->format(\'n月j日 G時\');',
       options: [
         { id: 'a', text: '2024/07/04 08:05:03 / 7月4日 8時' },
@@ -2810,7 +2810,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q216',
-      chapterSlug: 'chapter-08',
+      chapterSlug: 'chapter-07',
       text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$dt = DateTime::createFromFormat(\'d-m-Y\', \'25-12-2024\');\nif ($dt === false) {\n    echo "解析失敗";\n} else {\n    echo $dt->format(\'Y年m月d日\');\n}',
       options: [
         { id: 'a', text: '解析失敗（createFromFormat は存在しない）' },
@@ -2823,7 +2823,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q217',
-      chapterSlug: 'chapter-08',
+      chapterSlug: 'chapter-07',
       text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$dt = new DateTime(\'2024-04-01\');\n$dt->sub(new DateInterval(\'P1D\'));\necho $dt->format(\'Y-m-d\');',
       options: [
         { id: 'a', text: '2024-03-30' },
@@ -2836,7 +2836,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q218',
-      chapterSlug: 'chapter-08',
+      chapterSlug: 'chapter-07',
       text: '手続き的な `date()` 関数と `DateTime` クラスの違いとして正しいものはどれか。',
       options: [
         { id: 'a', text: 'date() はオブジェクト指向で使えるが DateTime はそうではない' },
@@ -2849,7 +2849,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q219',
-      chapterSlug: 'chapter-08',
+      chapterSlug: 'chapter-07',
       text: '以下のコードの動作として正しいものはどれか。\n\n<?php\n$dir = new DirectoryIterator(\'/tmp\');\nforeach ($dir as $item) {\n    if ($item->isDot()) continue;\n    if ($item->isDir()) {\n        echo "[DIR] " . $item->getFilename() . "\\n";\n    } else {\n        echo "[FILE] " . $item->getFilename() . " (" . $item->getSize() . " bytes)\\n";\n    }\n}',
       options: [
         { id: 'a', text: 'エラーになる（foreach で DirectoryIterator は使えない）' },
@@ -2889,7 +2889,7 @@ export const questions: Question[] = [
     {
       id: 'q222',
       chapterSlug: 'chapter-08',
-      text: '$_SERVER[\'REQUEST_METHOD\']の値を確認してPOSTリクエストのみ処理する正しいコードはどれか。',
+      text: '$_SERVER[\'REQUEST_METHOD\']の値を確認してPOSTリクエストのみ処理する正しいコードはどれか。\n// $_SERVER[\'REQUEST_METHOD\']: HTTPリクエストのメソッド（\'GET\'や\'POST\'など）を格納するサーバー変数',
       options: [
         { id: 'a', text: 'if ($_POST) { ... }' },
         { id: 'b', text: 'if ($_SERVER[\'REQUEST_METHOD\'] === \'POST\') { ... }' },
@@ -2902,15 +2902,15 @@ export const questions: Question[] = [
     {
       id: 'q223',
       chapterSlug: 'chapter-08',
-      text: 'セッション固定攻撃（Session Fixation）の対策として正しいものはどれか。',
+      text: 'PHPでセッションを使用する際の正しい記述はどれか。',
       options: [
-        { id: 'a', text: 'session_start()をすべてのページで呼び出す' },
-        { id: 'b', text: 'ログイン成功後にsession_regenerate_id(true)を呼び出してセッションIDを再生成する' },
-        { id: 'c', text: '$_SESSIONを空配列で初期化する' },
-        { id: 'd', text: 'セッションのタイムアウトを短くする' },
+        { id: 'a', text: 'session_start()はスクリプトの末尾で呼び出す' },
+        { id: 'b', text: 'session_start()はHTMLの出力やecho文より前に呼び出す必要がある' },
+        { id: 'c', text: 'session_start()は自動的に呼ばれるため明示的な呼び出しは不要' },
+        { id: 'd', text: 'session_start()は同一リクエスト内で何度呼び出してもよい' },
       ],
       correctId: 'b',
-      explanation: 'セッション固定攻撃は攻撃者が事前に知っているセッションIDをユーザーに使わせる攻撃。ログイン成功直後にsession_regenerate_id(true)で新しいセッションIDを生成し、古いセッションを削除することで防ぐ。',
+      explanation: '- B（正解）: session_start() はセッションクッキーを含むHTTPヘッダーを送信するため、HTML出力やecho文より前に呼び出す必要がある。出力後に呼び出すと "headers already sent" エラーになる。 A（誤）: 末尾では$_SESSIONへのアクセスができない。 C（誤）: php.iniのsession.auto_startが無効（デフォルト）の場合は明示的に呼ぶ必要がある。 D（誤）: 2回目以降の呼び出しはE_NOTICEになる。',
     },
     {
       id: 'q224',
@@ -3045,15 +3045,15 @@ export const questions: Question[] = [
     {
       id: 'q234',
       chapterSlug: 'chapter-08',
-      text: 'ログイン成功後にセッションハイジャックを防ぐために実行すべき処理として正しいものはどれか。',
+      text: 'セッションを完全に終了させる正しい手順はどれか。',
       options: [
-        { id: 'a', text: 'session_destroy() を呼んでセッションを破棄する' },
-        { id: 'b', text: 'session_regenerate_id(true) を呼んで新しいセッションIDを発行する' },
-        { id: 'c', text: 'session_start() を再度呼んでセッションを再開する' },
-        { id: 'd', text: '$_SESSION = [] でセッションデータをクリアする' },
+        { id: 'a', text: 'session_destroy() のみを呼び出す' },
+        { id: 'b', text: '$_SESSION = [] でデータをクリアしてから session_destroy() を呼び出す' },
+        { id: 'c', text: 'unset($_SESSION) のみを呼び出す' },
+        { id: 'd', text: '$_SESSION = [] のみを呼び出す' },
       ],
       correctId: 'b',
-      explanation: '- B（正解）: ログイン成功後に session_regenerate_id(true) を呼ぶことで、ログイン前のセッションIDを無効化し新しいIDを発行する。引数 true で古いセッションファイルも削除する。セッション固定攻撃（Session Fixation）の対策として重要。 A（誤）: session_destroy() はセッション自体を破棄するためログアウト時に使う。 C（誤）: session_start() はセッション開始・再開に使うが、IDは再生成されない。 D（誤）: データクリアはIDを変更しないため攻撃対策にならない。',
+      explanation: '- B（正解）: 完全なセッション終了には、①$_SESSION = []でセッションデータをクリアし、②session_destroy()でサーバー側のセッションデータを削除する、の2ステップが必要。 A（誤）: session_destroy()はサーバー側のセッションファイルを削除するが、$_SESSION変数自体は残る。 C（誤）: unset($_SESSION)はスクリプト内の変数を解除するだけでサーバー側は残る。 D（誤）: データクリアだけではサーバー側のセッションファイルが残る。',
     },
     {
       id: 'q235',
@@ -3083,7 +3083,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q237',
-      chapterSlug: 'chapter-09',
+      chapterSlug: 'chapter-08',
       text: '以下のコードに関する記述として正しいものはどれか。\n\n<?php\nsetcookie("user", "Alice", time() + 3600, "/");\necho $_COOKIE["user"] ?? "未設定";',
       options: [
         { id: 'a', text: 'Alice と出力される' },
@@ -3096,7 +3096,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q238',
-      chapterSlug: 'chapter-09',
+      chapterSlug: 'chapter-08',
       text: 'PHPのセッションを完全に破棄する正しい手順はどれか。',
       options: [
         { id: 'a', text: 'unset($_SESSION); session_destroy();' },
@@ -3109,7 +3109,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q239',
-      chapterSlug: 'chapter-09',
+      chapterSlug: 'chapter-08',
       text: '`session.cookie_httponly` を `1`（有効）に設定する効果として正しいものはどれか。',
       options: [
         { id: 'a', text: 'セッションクッキーがHTTPS通信でのみ送信される' },
@@ -3122,7 +3122,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q240',
-      chapterSlug: 'chapter-09',
+      chapterSlug: 'chapter-08',
       text: '`$_FILES[\'file\'][\'error\']` が `UPLOAD_ERR_OK` でない場合の対処として正しいものはどれか。',
       options: [
         { id: 'a', text: 'move_uploaded_file() を実行してファイルを移動する' },
@@ -3135,7 +3135,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q241',
-      chapterSlug: 'chapter-09',
+      chapterSlug: 'chapter-08',
       text: 'move_uploaded_file() の第1引数・第2引数として正しい組み合わせはどれか。',
       options: [
         { id: 'a', text: '(移動先のパス, $_FILES[\'file\'][\'tmp_name\'])' },
@@ -3660,11 +3660,11 @@ export const questions: Question[] = [
       options: [
         { id: 'a', text: 'spl_autoload_register はPHP 8で廃止された' },
         { id: 'b', text: 'App\\Models\\User クラスが未定義の場合、コールバックが呼ばれ App/Models/User.php の読み込みを試みる' },
-        { id: 'c', text: 'オートローダーはス' },
+        { id: 'c', text: 'spl_autoload_register はスクリプト内に1つしか登録できない' },
         { id: 'd', text: 'require の代わりに include_once を使わないと動作しない' },
       ],
       correctId: 'b',
-      explanation: '- B（正解）: spl_autoload_register は未定義クラスが使われた瞬間にコールバックを呼ぶ。名前空間の \\ を / に変換してファイルパスを構築し、ファイルが存在すれば require でロードする。Composerのオートローダーもこの仕組みを利用している。 A（誤）: PHP 8でも廃止されていない。 C（誤）: 未定義クラスが使われるたびに呼ばれる。 D（誤）: require で問題ない。',
+      explanation: 'spl_autoload_register は未定義クラスが使われた瞬間にコールバックを呼ぶ。名前空間の \\ を / に変換してファイルパスを構築し、ファイルが存在すれば require でロードする。Composerのオートローダーもこの仕組みを利用している。A（誤）: PHP 8でも廃止されていない。C（誤）: spl_autoload_registerは複数回呼び出して複数のオートローダーを登録できる。D（誤）: require で問題ない。',
     },
     {
       id: 'q282',
@@ -3798,7 +3798,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q292',
-      chapterSlug: 'chapter-10',
+      chapterSlug: 'chapter-07',
       text: 'PHP 8.0で追加されたnullsafe演算子（?->）について正しい説明はどれか。',
       options: [
         { id: 'a', text: 'nullの場合にデフォルト値を返す（??演算子と同じ）' },
@@ -3811,7 +3811,7 @@ export const questions: Question[] = [
     },
     {
       id: 'q293',
-      chapterSlug: 'chapter-10',
+      chapterSlug: 'chapter-06',
       text: 'PHP 8.0で追加されたUnion型の正しい記法はどれか。',
       options: [
         { id: 'a', text: 'function test(int or string $val): void {}' },
@@ -4332,15 +4332,15 @@ export const questions: Question[] = [
     {
       id: 'q333',
       chapterSlug: 'chapter-11',
-      text: 'PHPでパスワードを安全にハッシュ化する正しいコードはどれか。',
+      text: 'ユーザー入力をHTMLに安全に出力するコードとして最も適切なものはどれか。\n\n<?php\n$input = $_GET[\'name\'];',
       options: [
-        { id: 'a', text: 'md5($password)' },
-        { id: 'b', text: 'sha1($password)' },
-        { id: 'c', text: 'password_hash($password, PASSWORD_BCRYPT)' },
-        { id: 'd', text: 'hash(\'sha256\', $password)' },
+        { id: 'a', text: "echo $input;" },
+        { id: 'b', text: "echo strip_tags($input);" },
+        { id: 'c', text: "echo htmlspecialchars($input, ENT_QUOTES, 'UTF-8');" },
+        { id: 'd', text: "echo urlencode($input);" },
       ],
       correctId: 'c',
-      explanation: 'password_hash()はBcryptなどの強力なアルゴリズムでソルト付きハッシュを生成する。md5/sha1は高速すぎてブルートフォース攻撃に弱い。検証にはpassword_verify()を使用する。',
+      explanation: "htmlspecialchars()にENT_QUOTESを指定するとダブルクォート（\"）だけでなくシングルクォート（'）もエスケープされる。文字コードはUTF-8を明示的に指定することが推奨される。strip_tags()はHTMLタグを除去するがXSS対策として不完全。urlencode()はURL用エンコードであり、HTML出力には不適切。",
     },
     {
       id: 'q334',
@@ -4527,15 +4527,15 @@ export const questions: Question[] = [
     {
       id: 'q348',
       chapterSlug: 'chapter-05',
-      text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$arr = [\'PHP\', \'MySQL\', \'Apache\'];\necho implode(\' / \', $arr);',
+      text: '以下のコードの出力として正しいものはどれか。\n\n<?php\n$arr = [\'PHP\', \'MySQL\', \'Apache\'];\necho implode(\', \', $arr);',
       options: [
-        { id: 'a', text: 'PHP/MySQL/Apache' },
-        { id: 'b', text: 'PHP / MySQL / Apache' },
-        { id: 'c', text: 'PHP MySQL Apache' },
+        { id: 'a', text: 'PHP MySQL Apache' },
+        { id: 'b', text: 'PHP,MySQL,Apache' },
+        { id: 'c', text: 'PHP, MySQL, Apache' },
         { id: 'd', text: "[\'PHP\',\'MySQL\',\'Apache\']" },
       ],
-      correctId: 'b',
-      explanation: 'implode($separator, $array) は配列の各要素を指定した区切り文字で結合して文字列を返す。区切り文字は " / "（スペース込み）なので "PHP / MySQL / Apache" となる。join() は implode() の別名（エイリアス）。',
+      correctId: 'c',
+      explanation: "implode($separator, $array) は配列の各要素を指定した区切り文字で結合して文字列を返す。区切り文字は ', '（カンマ＋スペース）なので \"PHP, MySQL, Apache\" となる。join() は implode() の別名（エイリアス）。",
     },
     {
       id: 'q349',
