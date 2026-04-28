@@ -17,17 +17,23 @@ const questionsJson = JSON.stringify(questions);
 
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-gray-800">全章まとめ練習</h1>
-      <p class="text-gray-500 text-sm mt-1">全{questions.length}問・シャッフル出題</p>
+      <p class="text-gray-500 text-sm mt-1">全{questions.length}問</p>
     </div>
 
     <!-- スタート画面 -->
     <div id="start-area" class="bg-white border border-gray-200 rounded-xl p-8 text-center">
       <p class="text-5xl mb-4">🐘</p>
       <h2 class="text-lg font-bold text-gray-800 mb-2">全章の問題に挑戦しよう</h2>
-      <p class="text-sm text-gray-500 mb-6">
-        全11章から{questions.length}問をシャッフルして出題します。<br />
+      <p class="text-sm text-gray-500 mb-4">
+        全11章から{questions.length}問を出題します。<br />
         自信がついたら挑戦してみましょう！
       </p>
+      <div class="flex justify-center mb-5">
+        <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden divide-x divide-gray-200 text-sm">
+          <button id="mode-sequential-btn" class="px-4 py-2 text-gray-600 hover:bg-gray-50 transition-colors">順番通り</button>
+          <button id="mode-shuffle-btn" class="px-4 py-2 text-gray-600 hover:bg-gray-50 transition-colors">ランダム</button>
+        </div>
+      </div>
       <div class="flex flex-col sm:flex-row justify-center gap-3">
         <button
           id="start-all-btn"
@@ -150,7 +156,7 @@ const questionsJson = JSON.stringify(questions);
           id="retry-btn"
           class="bg-indigo-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors"
         >
-          もう一度（シャッフル）
+          もう一度
         </button>
         <button
           id="retry-mistakes-btn"
@@ -281,6 +287,29 @@ const questionsJson = JSON.stringify(questions);
   mistakeCountEl.textContent = String(mistakeQuestions.length);
   if (mistakeQuestions.length > 0) startMistakesBtn.classList.remove('hidden');
 
+  // ── 出題順モード ────────────────────────────────────────────────
+  const ORDER_MODE_KEY = 'php-study-order-mode';
+
+  function getOrderMode(): 'shuffle' | 'sequential' {
+    return (localStorage.getItem(ORDER_MODE_KEY) as 'shuffle' | 'sequential') ?? 'shuffle';
+  }
+
+  function setOrderMode(mode: 'shuffle' | 'sequential') {
+    localStorage.setItem(ORDER_MODE_KEY, mode);
+    updateModeUI(mode);
+  }
+
+  function updateModeUI(mode: 'shuffle' | 'sequential') {
+    const active   = 'px-4 py-2 bg-indigo-600 text-white text-sm font-medium transition-colors';
+    const inactive = 'px-4 py-2 text-gray-600 hover:bg-gray-50 text-sm transition-colors';
+    document.getElementById('mode-sequential-btn')!.className = mode === 'sequential' ? active : inactive;
+    document.getElementById('mode-shuffle-btn')!.className    = mode === 'shuffle'     ? active : inactive;
+  }
+
+  document.getElementById('mode-sequential-btn')!.addEventListener('click', () => setOrderMode('sequential'));
+  document.getElementById('mode-shuffle-btn')!.addEventListener('click', () => setOrderMode('shuffle'));
+  updateModeUI(getOrderMode());
+
   // ── クイズ状態 ─────────────────────────────────────────────────
   let questions: any[] = [];
   let currentIndex = 0;
@@ -316,7 +345,8 @@ const questionsJson = JSON.stringify(questions);
   };
 
   function startQuiz(pool: any[]) {
-    questions = shuffle(pool).map(shuffleOptions);
+    const mode = getOrderMode();
+    questions = (mode === 'shuffle' ? shuffle(pool) : [...pool]).map(shuffleOptions);
     currentIndex = 0;
     score = 0;
     answered = false;
@@ -494,7 +524,10 @@ const questionsJson = JSON.stringify(questions);
     });
   }
 
-  document.getElementById('retry-btn')!.addEventListener('click', () => startQuiz(allQuestions));
+  document.getElementById('retry-btn')!.addEventListener('click', () => {
+    resultArea.classList.add('hidden');
+    startArea.classList.remove('hidden');
+  });
   document.getElementById('retry-mistakes-btn')!.addEventListener('click', () => {
     const pool = allQuestions.filter((q) => loadMistakes().has(q.id));
     if (pool.length > 0) startQuiz(pool);
