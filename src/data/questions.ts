@@ -1,4 +1,6 @@
-﻿export type Option = {
+﻿import textbookPagesDoc from '../../doc.md?raw';
+
+export type Option = {
   id: string;
   text: string;
 };
@@ -10,9 +12,10 @@ export type Question = {
   options: Option[];
   correctId: string;
   explanation: string;
+  textbookPages?: string;
 };
 
-export const questions: Question[] = [
+const rawQuestions: Question[] = [
     {
       id: 'q001',
       chapterSlug: 'chapter-01',
@@ -4733,3 +4736,34 @@ export const questions: Question[] = [
       explanation: 'SQLインジェクションは悪意のあるSQL文を注入する攻撃。プリペアドステートメントはSQL構造とデータを分離して処理するため、入力値がSQL命令として解釈されない最も効果的な対策。PHP以外の言語でも発生する。DBが自動防止することはない。',
     }
 ];
+
+const textbookPagesByQuestionNumber = new Map(
+  textbookPagesDoc
+    .trim()
+    .split(/\r?\n/)
+    .map((line) => {
+      const [questionNumber, pages = ''] = line.split(':', 2);
+      return [Number(questionNumber), pages.trim().replace(/,+$/, '')] as const;
+    })
+    .filter(([questionNumber]) => Number.isFinite(questionNumber))
+);
+
+function getQuestionNumber(id: string): number | null {
+  const match = /^q(\d+)$/.exec(id);
+  return match ? Number(match[1]) : null;
+}
+
+function appendTextbookPage(explanation: string, textbookPages: string | undefined): string {
+  return textbookPages ? `${explanation}\n\n教科書: p.${textbookPages}` : explanation;
+}
+
+export const questions: Question[] = rawQuestions.map((question) => {
+  const questionNumber = getQuestionNumber(question.id);
+  const textbookPages = questionNumber ? textbookPagesByQuestionNumber.get(questionNumber) : undefined;
+
+  return {
+    ...question,
+    textbookPages: textbookPages || undefined,
+    explanation: appendTextbookPage(question.explanation, textbookPages),
+  };
+});
